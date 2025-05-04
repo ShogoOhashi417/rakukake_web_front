@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import userService, { User } from './api/services/userService';
+import HomePage from './pages/HomePage';
 
-function App() {
+// ユーザープロフィールページのコンポーネント
+const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +48,28 @@ function App() {
         )}
       </header>
     </div>
+  );
+};
+
+// 存在しないページへのアクセス時に表示するコンポーネント
+const NotFoundPage: React.FC = () => (
+  <div className="App">
+    <header className="App-header">
+      <h1>404 - ページが見つかりません</h1>
+      <p>お探しのページは存在しないか、移動した可能性があります。</p>
+    </header>
+  </div>
+);
+
+// メインのApp関数でルーティングを定義
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/404" element={<NotFoundPage />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
+    </Routes>
   );
 }
 
