@@ -1,23 +1,48 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
+import userService, { User } from './api/services/userService';
 
 function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // コンポーネントマウント時にユーザー情報を取得
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const userData = await userService.getProfile();
+        setUser(userData);
+      } catch (err) {
+        console.error('Failed to fetch user:', err);
+        setError('ユーザー情報の取得に失敗しました');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Rakukake API Frontend</h1>
+        {loading && <p>Loading...</p>}
+        {error && <p className="error">{error}</p>}
+        {user && (
+          <div className="user-profile">
+            <h2>ユーザープロフィール</h2>
+            <p>ID: {user.id}</p>
+            <p>名前: {user.name}</p>
+            <p>Email: {user.email}</p>
+          </div>
+        )}
+        {!loading && !error && !user && (
+          <p>ユーザーデータがありません</p>
+        )}
       </header>
     </div>
   );
