@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import userService, { User } from './api/services/userService';
-import HomePage from './pages/HomePage';
+import Welcome from './pages/Welcome';
 
 // ユーザープロフィールページのコンポーネント
 const ProfilePage: React.FC = () => {
@@ -65,7 +65,7 @@ const NotFoundPage: React.FC = () => (
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<Welcome />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/404" element={<NotFoundPage />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
