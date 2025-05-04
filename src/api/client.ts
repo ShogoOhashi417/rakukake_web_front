@@ -8,7 +8,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // CORSリクエストでクッキーを送信する
+  withCredentials: false, // 一時的にfalseに設定してCORS問題を回避
 });
 
 // リクエスト時の共通処理
