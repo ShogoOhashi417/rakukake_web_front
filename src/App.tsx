@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-import userService, { User } from './api/services/userService';
 import Welcome from './pages/Welcome';
+import userService, { User } from './api/services/userService';
 
 // ユーザープロフィールページのコンポーネント
 const ProfilePage: React.FC = () => {
