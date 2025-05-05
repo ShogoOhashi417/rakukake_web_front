@@ -173,7 +173,7 @@ export default function Category() {
 
     // 支出カテゴリーの削除
     const deleteExpenditureCategory = (expenditureCategoryId) => {
-        if (!confirm("この支出カテゴリーを削除します。本当によろしいですか？")) {
+        if (!window.confirm("この支出カテゴリーを削除します。本当によろしいですか？")) {
             return;
         }
 
@@ -186,7 +186,7 @@ export default function Category() {
 
     // 収入カテゴリーの削除
     const deleteIncomeCategory = (incomeCategoryId) => {
-        if (!confirm("この収入カテゴリーを削除します。本当によろしいですか？")) {
+        if (!window.confirm("この収入カテゴリーを削除します。本当によろしいですか？")) {
             return;
         }
 

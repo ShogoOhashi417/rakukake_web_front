@@ -43,7 +43,7 @@ const Welcome = () => {
                             {auth.user ? (
                                 <>
                                     <Button className="bg-green-600 hover:bg-green-700" asChild>
-                                        <Link to="/dashboard">ダッシュボード</Link>
+                                        <Link to="/report/savings">ダッシュボード</Link>
                                     </Button>
                                     <Button variant="outline" onClick={handleLogout}>
                                         ログアウト
@@ -70,7 +70,7 @@ const Welcome = () => {
                             </p>
                             {auth.user ? (
                                 <Button size="lg" className="bg-green-600 hover:bg-green-700" asChild>
-                                    <Link to="/dashboard">ダッシュボードへ</Link>
+                                    <Link to="/report/savings">ダッシュボードへ</Link>
                                 </Button>
                             ) : (
                                 <Button size="lg" className="bg-green-600 hover:bg-green-700" asChild>

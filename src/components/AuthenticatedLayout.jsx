@@ -169,10 +169,10 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                     </Dropdown.Trigger>
 
                     <Dropdown.Content>
-                      <Dropdown.Link href="/report/saving" active={isActive("/report/saving")}>
+                      <Dropdown.Link href="/report/savings" active={isActive("/report/savings")}>
                         貯金額
                       </Dropdown.Link>
-                      <Dropdown.Link href="/report/expense" active={isActive("/report/expense")}>
+                      <Dropdown.Link href="/report/expenses" active={isActive("/report/expenses")}>
                         支出額
                       </Dropdown.Link>
                     </Dropdown.Content>
@@ -188,7 +188,7 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                         <button
                           type="button"
                           className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium leading-4 rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 ${
-                            isActivePrefix("/income") ? "border-b-2 border-indigo-400 text-gray-900" : ""
+                            isActivePrefix("/incomes") ? "border-b-2 border-indigo-400 text-gray-900" : ""
                           }`}
                         >
                           収入管理
@@ -209,10 +209,10 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                     </Dropdown.Trigger>
 
                     <Dropdown.Content>
-                      <Dropdown.Link href="/income" active={isActive("/income")}>
+                      <Dropdown.Link href="/incomes" active={isActive("/incomes")}>
                         収入管理
                       </Dropdown.Link>
-                      <Dropdown.Link href="/income/fixed" active={isActive("/income/fixed")}>
+                      <Dropdown.Link href="/incomes/fixed" active={isActive("/incomes/fixed")}>
                         固定収入
                       </Dropdown.Link>
                     </Dropdown.Content>
@@ -228,7 +228,7 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                         <button
                           type="button"
                           className={`inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium leading-4 rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 ${
-                            isActivePrefix("/expenditure") ? "border-b-2 border-indigo-400 text-gray-900" : ""
+                            isActivePrefix("/expenses") ? "border-b-2 border-indigo-400 text-gray-900" : ""
                           }`}
                         >
                           支出管理
@@ -249,10 +249,10 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                     </Dropdown.Trigger>
 
                     <Dropdown.Content>
-                      <Dropdown.Link href="/expense" active={isActive("/expense")}>
+                      <Dropdown.Link href="/expenses" active={isActive("/expenses")}>
                         支出管理
                       </Dropdown.Link>
-                      <Dropdown.Link href="/expense/fixed" active={isActive("/expense/fixed")}>
+                      <Dropdown.Link href="/expenses/fixed" active={isActive("/expenses/fixed")}>
                         固定支出
                       </Dropdown.Link>
                     </Dropdown.Content>
@@ -261,13 +261,13 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
               </div>
 
               <div className="hidden space-x-8 sm:ml-10 sm:flex items-center">
-                <NavLink to="/category" active={isActive("/category")}>
+                <NavLink to="/categories" active={isActive("/categories")}>
                   カテゴリー
                 </NavLink>
               </div>
 
               <div className="hidden space-x-8 sm:ml-10 sm:flex items-center">
-                <NavLink to="/bulk-operation" active={isActive("/bulk-operation")}>
+                <NavLink to="/bulk-operations" active={isActive("/bulk-operations")}>
                   CSV一括登録
                 </NavLink>
               </div>
@@ -340,22 +340,22 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
 
         <div className={`${showingNavigationDropdown ? "block" : "hidden"} sm:hidden`}>
           <div className="pt-2 pb-3 space-y-1">
-            <ResponsiveNavLink to="/income" active={isActive("/income")}>
+            <ResponsiveNavLink to="/incomes" active={isActive("/incomes")}>
               収入管理
             </ResponsiveNavLink>
-            <ResponsiveNavLink to="/income/fixed" active={isActive("/income/fixed")}>
+            <ResponsiveNavLink to="/incomes/fixed" active={isActive("/incomes/fixed")}>
               固定収入
             </ResponsiveNavLink>
-            <ResponsiveNavLink to="/expenditure" active={isActive("/expenditure")}>
+            <ResponsiveNavLink to="/expenses" active={isActive("/expenses")}>
               支出管理
             </ResponsiveNavLink>
-            <ResponsiveNavLink to="/expenditure/fixed" active={isActive("/expenditure/fixed")}>
+            <ResponsiveNavLink to="/expenses/fixed" active={isActive("/expenses/fixed")}>
               固定支出
             </ResponsiveNavLink>
             <ResponsiveNavLink to="/category" active={isActive("/category")}>
               カテゴリー
             </ResponsiveNavLink>
-            <ResponsiveNavLink to="/bulk-operation" active={isActive("/bulk-operation")}>
+            <ResponsiveNavLink to="/bulk-operations" active={isActive("/bulk-operations")}>
               CSV一括登録
             </ResponsiveNavLink>
           </div>

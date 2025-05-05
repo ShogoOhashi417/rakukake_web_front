@@ -1,14 +1,13 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost/api';
-
+// バックエンドサーバーのベースURLを設定
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: process.env.REACT_APP_API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: false, // 一時的にfalseに設定してCORS問題を回避
+  withCredentials: false,  // CORSの問題を回避するためfalseに設定
 });
 
 // リクエスト時の共通処理

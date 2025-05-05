@@ -1,9 +1,8 @@
-
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
-import Head from "@/components/Head";
-import PrimaryButton from "@/components/ui/PrimaryButton";
-import SecondaryButton from "@/components/ui/SecondaryButton";
+import Head from "../../components/Head";
+import PrimaryButton from "../../components/ui/PrimaryButton";
+import SecondaryButton from "../../components/ui/SecondaryButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -27,7 +26,7 @@ export default function BulkOperation() {
     const [isDownloading, setIsDownloading] = useState(false);
 
     const exportSampleCsv = () => {
-        axios.get("/expenditure/export", {}).then((response) => {
+        axios.get("/api/expenditure/export", {}).then((response) => {
             const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
 
             const rows = [response.data.header, ...response.data.data];
@@ -61,7 +60,7 @@ export default function BulkOperation() {
     const downloadExpenditureCsv = () => {
         setIsDownloading(true);
         axios
-            .get("/expenditure/export_data", {
+            .get("/api/expenditure/export_data", {
                 params: {
                     start_date: dateRange.startDate,
                     end_date: dateRange.endDate,
@@ -114,7 +113,7 @@ export default function BulkOperation() {
             formData.append("csv", fileInput.files[0]);
         }
         axios
-            .post("/expenditure/import_csv", formData, {
+            .post("/api/expenditure/import_csv", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -130,7 +129,7 @@ export default function BulkOperation() {
         useState([]);
 
     const getExpenditureCategory = async () => {
-        const response = await axios.get("/expenditure_category/get");
+        const response = await axios.get("/api/expenditure_category/get");
         setExpenditureCategoryInfoList(
             response.data.expenditure_category_info_list
         );
@@ -176,7 +175,7 @@ export default function BulkOperation() {
         });
 
         axios
-            .post("/expenditure/bulk_create", formData, {
+            .post("/api/expenditure/bulk_create", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data", // ヘッダーを設定
                 },

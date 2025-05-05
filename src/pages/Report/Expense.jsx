@@ -65,15 +65,16 @@ export default function ExpenseReport({ auth = { user: { name: '' } }, expenseIn
         const endDate = `${dates[dates.length - 1]}-${String(lastDay).padStart(2, '0')}`;
 
         try {
-            const response = await axios.get('/report/expense/get', {
+            const response = await axios.get('/api/report/expense/get', {
                 params: {
                     start_date: startDate,
                     end_date: endDate
                 }
             });
-            setExpenditureInfoList(response.data.category_to_amount_list);
+            setExpenditureInfoList(response.data.category_to_amount_list || {});
         } catch (error) {
             console.error('データの取得に失敗しました:', error);
+            setExpenditureInfoList({});
         }
     };
 

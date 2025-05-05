@@ -92,7 +92,7 @@ export default function FixedExpense({
 
     const getInfo = () => {
         axios
-            .get("/expenditure/fixed/get")
+            .get("/api/expenditure/fixed/get")
             .then((response) => {
                 setExpenditureInfoList(response.data.expenditure_info_list);
             })
@@ -113,7 +113,7 @@ export default function FixedExpense({
             : null;
 
         axios
-            .post("/expenditure/fixed/add", {
+            .post("/api/expenditure/fixed/add", {
                 name: expenditureName,
                 category_id: expenditureCategoryId,
                 amount: expenditureAmount,
@@ -177,7 +177,7 @@ export default function FixedExpense({
     };
 
     const deleteExpenditure = (expenditureId) => {
-        if (!confirm("本当にこの固定支出を削除しますか？")) {
+        if (!window.confirm("本当にこの固定支出を削除しますか？")) {
             return;
         }
 

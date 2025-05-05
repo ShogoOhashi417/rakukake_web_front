@@ -258,8 +258,8 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
               <div className="hidden space-x-8 sm:ms-10 sm:flex items-center">
                 <NavLink
-                  href="/bulk-operation"
-                  active={isActive("/bulk-operation")}
+                  href="/bulk-operations"
+                  active={isActive("/bulk-operations")}
                 >
                   CSV一括登録
                 </NavLink>
@@ -367,10 +367,22 @@ export default function AuthenticatedLayout({ user, header, children }) {
               収入管理
             </ResponsiveNavLink>
             <ResponsiveNavLink
+              href="/incomes/fixed"
+              active={isActive("/incomes/fixed")}
+            >
+              固定収入
+            </ResponsiveNavLink>
+            <ResponsiveNavLink
               href="/expenditure"
               active={isActive("/expenditure")}
             >
               支出管理
+            </ResponsiveNavLink>
+            <ResponsiveNavLink
+              href="/expenses/fixed"
+              active={isActive("/expenses/fixed")}
+            >
+              固定支出
             </ResponsiveNavLink>
             <ResponsiveNavLink
               href="/category"
@@ -379,8 +391,8 @@ export default function AuthenticatedLayout({ user, header, children }) {
               カテゴリー
             </ResponsiveNavLink>
             <ResponsiveNavLink
-              href="/bulk-operation"
-              active={isActive("/bulk-operation")}
+              href="/bulk-operations"
+              active={isActive("/bulk-operations")}
             >
               CSV一括登録
             </ResponsiveNavLink>
