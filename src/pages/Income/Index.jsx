@@ -11,7 +11,7 @@ import {
     getCoreRowModel,
     getSortedRowModel,
 } from "@tanstack/react-table";
-import axios from "axios";
+import incomeService from "../../api/services/incomeService";
 
 function useAuth() {
     const [user, setUser] = useState(null);
@@ -37,15 +37,6 @@ function useAuth() {
     return { user, loading };
 }
 
-const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL,
-    withCredentials: false,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
-});
-
 export default function Income() {
     const { user, loading } = useAuth();
 
@@ -60,21 +51,15 @@ export default function Income() {
     // Initialize this above the useEffect to prevent race conditions
     const [incomeInfoList, setincomeInfoList] = useState([]);
 
-    const getInfo = () => {
-        api.get('/wasshoi')
-            .then(response => {
-                console.error(response);
-                if (response.data && response.data.income_info_list) {
-                    setincomeInfoList(response.data.income_info_list);
-                } else {
-                    console.error('Invalid response format:', response.data);
-                    setincomeInfoList([]);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching income data:', error);
-                setincomeInfoList([]);
-            });
+    const getInfo = async () => {
+        try {
+            const incomes = await incomeService.getIncomeList();
+            console.error(incomes);
+            setincomeInfoList(incomes);
+        } catch (error) {
+            console.error('Error fetching income data:', error);
+            setincomeInfoList([]);
+        }
     }
 
     useEffect(() => {
@@ -124,38 +109,20 @@ export default function Income() {
         updateIncomeRef.current.classList.add('hidden');
     }
 
-    const addIncome = () => {
-        // todo from rakukake
-        api.post('/income/add', {
-            'income_name': incomeName,
-            'income_category_id' : incomeCategoryId,
-            'income_amount': incomeAmount,
-            // 'calendar_date' : calendarDate.startDate
-        })
-        .then(response => {
-            getInfo();
+    const addIncome = async () => {
+        try {
+            await incomeService.addIncome({
+                income_name: incomeName,
+                income_category_id: incomeCategoryId,
+                income_amount: incomeAmount,
+                // calendar_date: calendarDate.startDate
+            });
+            await getInfo();
             closeModal();
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error adding income:', error);
-        });
+        }
 
-        setIncomeName('');
-        setIncomeCategoryId(0);
-        setIncomeAmount(0);
-
-        // const newIncome = {
-        //     id: incomeInfoList.length + 1, 
-        //     name: incomeName,
-        //     amount: incomeAmount,
-        //     category_id: incomeCategoryId,
-        //     category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
-        //     date: selectedDay ? formatDateString(selectedDay) : null
-        // };
-        
-        // setIncomeInfoList([...incomeInfoList, newIncome]);
-        closeModal();
-        
         // フォームをリセット
         setIncomeName('');
         setIncomeCategoryId(0);
@@ -163,73 +130,43 @@ export default function Income() {
         setSelectedDay(null);
     }
 
-    const updateIncome = () => {
-        // todo from rakukake
-        // const localDate = new Date(calendarDate.startDate).toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' });
-        api.put(`/income/update/${incomeId}`, {
-            'income_name': incomeName,
-            'income_category_id' : incomeCategoryId,
-            'income_amount': incomeAmount,
-            // 'calendar_date' : localDate
-        })
-        .then(response => {
-            getInfo();
+    const updateIncome = async () => {
+        try {
+            await incomeService.updateIncome(incomeId, {
+                income_name: incomeName,
+                income_category_id: incomeCategoryId,
+                income_amount: incomeAmount,
+                // calendar_date: localDate
+            });
+            await getInfo();
             closeModal();
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error updating income:', error);
-        });
+        }
 
+        // フォームをリセット
         setIncomeId(0);
         setIncomeName('');
         setIncomeCategoryId(0);
         setIncomeAmount(0);
-        // const updatedIncomes = incomeInfoList.map(income => {
-        //     if (income.id === incomeId) {
-        //         return {
-        //             ...income,
-        //             name: incomeName,
-        //             amount: incomeAmount,
-        //             category_id: parseInt(incomeCategoryId),
-        //             category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
-        //             date: selectedDay ? formatDateString(selectedDay) : null
-        //         };
-        //     }
-        //     return income;
-        // });
-        
-        // setIncomeInfoList(updatedIncomes);
-        // closeModal();
-        
-        // // フォームをリセット
-        // setIncomeId(0);
-        // setIncomeName('');
-        // setIncomeCategoryId(0);
-        // setIncomeAmount(0);
-        // setSelectedDay(null);
+        setSelectedDay(null);
     }
 
-    const deleteIncome = (incomeId) => {
+    const deleteIncome = async (incomeId) => {
         if (!window.confirm('本当に収入を削除しますか？')) {
             return;
         }
 
-        // todo from rakukake
-        api.post('/income/delete', {
-            'id' : incomeId,
-            'income_name' : incomeName,
-            'income_amount': incomeAmount,
-        })
-        .then(response => {
-            getInfo();
-        })
-        .catch(error => {
+        try {
+            await incomeService.deleteIncome({
+                id: incomeId,
+                income_name: incomeName,
+                income_amount: incomeAmount,
+            });
+            await getInfo();
+        } catch (error) {
             console.error('Error deleting income:', error);
-        });
-        
-        // モックでデータを削除
-        // const filteredIncomes = incomeInfoList.filter(income => income.id !== incomeId);
-        // setIncomeInfoList(filteredIncomes);
+        }
     }
 
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState(IncomeCategoryDataList);
