@@ -93,25 +93,28 @@ export default function Saving({ auth = { user: {} }, incomeDataList = { categor
         }
     };
 
-    const getCategoryToAmountList = async () => {
+    const fetchChart = async () => {
         try {
-            const startDate = dateList[0];
-            const endDate = dateList[dateList.length - 1];
-
-            const response = await axios.get('/report/saving/get', {
+            const response = await axios.get('/api/report/saving/get', {
                 params: {
-                    start_date: startDate,
-                    end_date: endDate
+                    start_date: dateList[0] + '-01',
+                    end_date: getMonthEndDate(dateList[dateList.length - 1])
                 }
             });
 
-            console.error(response.data);
-
-            setIncomeInfoList(response.data.incomeDataList.category_to_amount_list);
-            setExpenditureInfoList(response.data.expenseDataList.category_to_amount_list);
+            setIncomeInfoList(response.data.incomeDataList?.category_to_amount_list || {});
+            setExpenditureInfoList(response.data.expenseDataList?.category_to_amount_list || {});
         } catch (error) {
-            console.error('データの取得に失敗しました:', error);
+            console.error('Failed to fetch chart data:', error);
+            setIncomeInfoList({});
+            setExpenditureInfoList({});
         }
+    }
+
+    const getMonthEndDate = (yearMonth) => {
+        const [year, month] = yearMonth.split('-');
+        const lastDay = new Date(year, month, 0).getDate();
+        return `${yearMonth}-${String(lastDay).padStart(2, '0')}`;
     }
 
     const changeDate = (event) => {
@@ -123,7 +126,7 @@ export default function Saving({ auth = { user: {} }, incomeDataList = { categor
     const [combinedChartOptions, setCombinedChartOptions] = useState({});
 
     useEffect(() => {
-        getCategoryToAmountList();
+        fetchChart();
     }, [dateList]);
 
     useEffect(() => {

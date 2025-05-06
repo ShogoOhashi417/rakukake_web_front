@@ -11,25 +11,11 @@ import {
     getCoreRowModel,
     getSortedRowModel,
 } from "@tanstack/react-table";
+import axios from "axios";
 
-export default function Income() {
-    // モックユーザー情報
+function useAuth() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    
-    // モックデータ
-    const [incomeInfoList, setIncomeInfoList] = useState([
-        { id: 1, name: "給料", amount: 280000, category_name: "給与", category_id: 1, date: "2023-05-25" },
-        { id: 2, name: "ボーナス", amount: 500000, category_name: "臨時収入", category_id: 2, date: "2023-06-15" },
-        { id: 3, name: "副業", amount: 50000, category_name: "副収入", category_id: 3, date: "2023-05-30" },
-    ]);
-
-    const [incomeCategoryInfoList] = useState([
-        { id: 1, name: "給与" },
-        { id: 2, name: "臨時収入" },
-        { id: 3, name: "副収入" },
-        { id: 4, name: "その他" },
-    ]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -48,10 +34,54 @@ export default function Income() {
         setLoading(false);
     }, []);
 
+    return { user, loading };
+}
+
+const api = axios.create({
+    baseURL: process.env.REACT_APP_API_URL,
+    withCredentials: false,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+});
+
+export default function Income() {
+    const { user, loading } = useAuth();
+
+    // todo temporary.apiから取得
+    const IncomeCategoryDataList = [];
+
     const [incomeId, setIncomeId] = useState(0);
     const [incomeName, setIncomeName] = useState('');
     const [incomeCategoryId, setIncomeCategoryId] = useState(0);
     const [incomeAmount, setIncomeAmount] = useState(0);
+    
+    // Initialize this above the useEffect to prevent race conditions
+    const [incomeInfoList, setincomeInfoList] = useState([]);
+
+    const getInfo = () => {
+        api.get('/wasshoi')
+            .then(response => {
+                console.error(response);
+                if (response.data && response.data.income_info_list) {
+                    setincomeInfoList(response.data.income_info_list);
+                } else {
+                    console.error('Invalid response format:', response.data);
+                    setincomeInfoList([]);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching income data:', error);
+                setincomeInfoList([]);
+            });
+    }
+
+    useEffect(() => {
+        getInfo();
+    }, []);
+
+    const [selectedDay, setSelectedDay] = useState(null);
 
     const changeIncomeName = (event) => {
         setIncomeName(event.target.value);
@@ -78,7 +108,10 @@ export default function Income() {
         setIncomeCategoryId(incomeCategoryId);
         setIncomeAmount(incomeAmount);
         
-        // 日付文字列からDateオブジェクトに変換
+        // todo from rakukake
+        // setCalendarDate({ startDate : incomeCalendarDate, endDate:incomeCalendarDate });
+
+        // todo original
         if (incomeCalendarDate) {
             setSelectedDay(new Date(incomeCalendarDate));
         }
@@ -92,17 +125,35 @@ export default function Income() {
     }
 
     const addIncome = () => {
-        // モックでデータを追加
-        const newIncome = {
-            id: incomeInfoList.length + 1, 
-            name: incomeName,
-            amount: incomeAmount,
-            category_id: incomeCategoryId,
-            category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
-            date: selectedDay ? formatDateString(selectedDay) : null
-        };
+        // todo from rakukake
+        api.post('/income/add', {
+            'income_name': incomeName,
+            'income_category_id' : incomeCategoryId,
+            'income_amount': incomeAmount,
+            // 'calendar_date' : calendarDate.startDate
+        })
+        .then(response => {
+            getInfo();
+            closeModal();
+        })
+        .catch(error => {
+            console.error('Error adding income:', error);
+        });
+
+        setIncomeName('');
+        setIncomeCategoryId(0);
+        setIncomeAmount(0);
+
+        // const newIncome = {
+        //     id: incomeInfoList.length + 1, 
+        //     name: incomeName,
+        //     amount: incomeAmount,
+        //     category_id: incomeCategoryId,
+        //     category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
+        //     date: selectedDay ? formatDateString(selectedDay) : null
+        // };
         
-        setIncomeInfoList([...incomeInfoList, newIncome]);
+        // setIncomeInfoList([...incomeInfoList, newIncome]);
         closeModal();
         
         // フォームをリセット
@@ -113,54 +164,85 @@ export default function Income() {
     }
 
     const updateIncome = () => {
-        // モックでデータを更新
-        const updatedIncomes = incomeInfoList.map(income => {
-            if (income.id === incomeId) {
-                return {
-                    ...income,
-                    name: incomeName,
-                    amount: incomeAmount,
-                    category_id: parseInt(incomeCategoryId),
-                    category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
-                    date: selectedDay ? formatDateString(selectedDay) : null
-                };
-            }
-            return income;
+        // todo from rakukake
+        // const localDate = new Date(calendarDate.startDate).toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' });
+        api.put(`/income/update/${incomeId}`, {
+            'income_name': incomeName,
+            'income_category_id' : incomeCategoryId,
+            'income_amount': incomeAmount,
+            // 'calendar_date' : localDate
+        })
+        .then(response => {
+            getInfo();
+            closeModal();
+        })
+        .catch(error => {
+            console.error('Error updating income:', error);
         });
-        
-        setIncomeInfoList(updatedIncomes);
-        closeModal();
-        
-        // フォームをリセット
+
         setIncomeId(0);
         setIncomeName('');
         setIncomeCategoryId(0);
         setIncomeAmount(0);
-        setSelectedDay(null);
+        // const updatedIncomes = incomeInfoList.map(income => {
+        //     if (income.id === incomeId) {
+        //         return {
+        //             ...income,
+        //             name: incomeName,
+        //             amount: incomeAmount,
+        //             category_id: parseInt(incomeCategoryId),
+        //             category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
+        //             date: selectedDay ? formatDateString(selectedDay) : null
+        //         };
+        //     }
+        //     return income;
+        // });
+        
+        // setIncomeInfoList(updatedIncomes);
+        // closeModal();
+        
+        // // フォームをリセット
+        // setIncomeId(0);
+        // setIncomeName('');
+        // setIncomeCategoryId(0);
+        // setIncomeAmount(0);
+        // setSelectedDay(null);
     }
 
     const deleteIncome = (incomeId) => {
-        if (!confirm('本当に収入を削除しますか？')) {
+        if (!window.confirm('本当に収入を削除しますか？')) {
             return;
         }
+
+        // todo from rakukake
+        api.post('/income/delete', {
+            'id' : incomeId,
+            'income_name' : incomeName,
+            'income_amount': incomeAmount,
+        })
+        .then(response => {
+            getInfo();
+        })
+        .catch(error => {
+            console.error('Error deleting income:', error);
+        });
         
         // モックでデータを削除
-        const filteredIncomes = incomeInfoList.filter(income => income.id !== incomeId);
-        setIncomeInfoList(filteredIncomes);
+        // const filteredIncomes = incomeInfoList.filter(income => income.id !== incomeId);
+        // setIncomeInfoList(filteredIncomes);
     }
 
-    const [selectedDay, setSelectedDay] = useState(null);
-    
-    // 日付変換関数を追加
-    const formatDateString = (date) => {
-        if (!date) return null;
-        return format(date, 'yyyy-MM-dd');
-    };
+    const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState(IncomeCategoryDataList);
+
+    const [calendarDate, setCalendarDate] = useState({ 
+        startDate: null, 
+        endDate: null
+    });
 
     const columnHelper = createColumnHelper();
 
     const data = React.useMemo(
-        () => incomeInfoList,
+        () => incomeInfoList || [],
         [incomeInfoList]
     );
 
@@ -172,7 +254,7 @@ export default function Income() {
         }),
         columnHelper.accessor("amount", {
             header: "金額",
-            cell: (info) => info.getValue().toLocaleString() + "円",
+            cell: (info) => info.getValue(),
             sortingFn: "basic",
         }),
         columnHelper.accessor("category_name", {
@@ -184,18 +266,65 @@ export default function Income() {
         []
     );
 
-    const [sorting, setSorting] = useState([]);
+    const [sorting, setSorting] = React.useState([]);
 
     const table = useReactTable({
         data,
         columns,
         state: {
-            sorting,
+        sorting,
         },
         onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
     });
+
+    
+    // // 日付変換関数を追加
+    // const formatDateString = (date) => {
+    //     if (!date) return null;
+    //     return format(date, 'yyyy-MM-dd');
+    // };
+
+    // const columnHelper = createColumnHelper();
+
+    // const data = React.useMemo(
+    //     () => incomeInfoList,
+    //     [incomeInfoList]
+    // );
+
+    // const columns = React.useMemo(
+    //     () => [
+    //     columnHelper.accessor("name", {
+    //         header: "収入名",
+    //         cell: (info) => info.getValue(),
+    //     }),
+    //     columnHelper.accessor("amount", {
+    //         header: "金額",
+    //         cell: (info) => info.getValue().toLocaleString() + "円",
+    //         sortingFn: "basic",
+    //     }),
+    //     columnHelper.accessor("category_name", {
+    //         header: "カテゴリー",
+    //         cell: (info) => info.getValue(),
+    //         sortingFn: "basic",
+    //     }),
+    //     ],
+    //     []
+    // );
+
+    // const [sorting, setSorting] = useState([]);
+
+    // const table = useReactTable({
+    //     data,
+    //     columns,
+    //     state: {
+    //         sorting,
+    //     },
+    //     onSortingChange: setSorting,
+    //     getCoreRowModel: getCoreRowModel(),
+    //     getSortedRowModel: getSortedRowModel(),
+    // });
 
     // ローディング中は何も表示しない
     if (loading) {
@@ -268,18 +397,18 @@ export default function Income() {
                                                     <div className="flex justify-center items-center">
                                                         <button
                                                             onClick={() => openUpdateModal(
-                                                                row.original.id,
-                                                                row.original.name,
-                                                                row.original.category_id,
-                                                                row.original.amount,
-                                                                row.original.date
+                                                                row.original.id || 0,
+                                                                row.original.name || '',
+                                                                row.original.category_id || 0,
+                                                                row.original.amount || 0,
+                                                                row.original.date || null
                                                             )}
                                                             className="mr-2"
                                                         >
                                                             <Edit className="h-4 w-4" />
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteIncome(row.original.id)}
+                                                            onClick={() => deleteIncome(row.original.id || 0)}
                                                         >
                                                             <Trash2 className="h-4 w-4 text-red-500" />
                                                         </button>

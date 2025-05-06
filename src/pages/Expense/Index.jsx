@@ -93,7 +93,7 @@ export default function Expense({
 
     const getInfo = () => {
         axios
-            .get("/expenditure/get")
+            .get("/api/expenditure/get")
             .then((response) => {
                 setExpenditureInfoList(response.data.expenditure_info_list);
             })
@@ -130,7 +130,7 @@ export default function Expense({
         
         const localCalendarDate = selectedDate.toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" });
         axios
-            .post("/expenditure/add", {
+            .post("/api/expenditure/add", {
                 expenditure_name: expenditureName,
                 expenditure_category_id: expenditureCategoryId,
                 expenditure_amount: expenditureAmount,
@@ -181,12 +181,12 @@ export default function Expense({
     };
 
     const deleteExpenditure = (expenditureId) => {
-        if (!confirm("本当にこの支出を削除しますか？")) {
+        if (!window.confirm("本当にこの支出を削除しますか？")) {
             return;
         }
 
         axios
-            .post("/expenditure/delete", {
+            .post("/api/expenditure/delete", {
                 id: expenditureId,
                 expenditure_name: expenditureName,
                 expenditure_amount: expenditureAmount,

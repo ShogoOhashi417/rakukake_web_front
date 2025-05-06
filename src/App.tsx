@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Welcome from './pages/Welcome';
 import userService, { User } from './api/services/userService';
-
+import Welcome from './pages/Welcome';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import Income from './pages/Income/Index';
+import IncomeFixed from './pages/Income/Fixed';
+import Expense from './pages/Expense/Index';
+import ExpenseFixed from './pages/Expense/Fixed';
+import Category from './pages/Category/Index';
+import Report from './pages/Report/Saving';
+import ReportExpense from './pages/Report/Expense';
+import BulkOperation from './pages/BulkOperation/ExpenseBulkOperation';
+import Edit from './pages/Profile/Edit';
 // ユーザープロフィールページのコンポーネント
 const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -65,7 +75,32 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />
-      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
+      <Route path="/profile" element={<Edit />} />
+
+      <Route path="/report/savings" element={<Report />} />
+      <Route path="/report/expenses" element={<ReportExpense />} />
+      
+      <Route path="/incomes" element={<Income />} />
+      <Route path="/incomes/fixed" element={<IncomeFixed />} />
+
+      <Route path="/expenses" element={<Expense 
+        auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
+        expenditure_info_list={[]} 
+        expenditure_category_info_list={[]} 
+      />} />
+      <Route path="/expenses/fixed" element={<ExpenseFixed 
+        auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
+        expenditure_info_list={[]} 
+        expenditure_category_info_list={[]} 
+      />} />
+
+      <Route path="/categories" element={<Category />} />
+
+      <Route path="/bulk-operations" element={<BulkOperation />} />
+      
       <Route path="/404" element={<NotFoundPage />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>

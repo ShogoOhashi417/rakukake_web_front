@@ -149,7 +149,7 @@ export default function Fixed({
 
     const getInfo = () => {
         axios
-            .get("/fixed-income/get")
+            .get("/api/fixed-income/get")
             .then((response) => {
                 setIncomeInfoList(response.data.fixedIncomes);
                 setCategoryInfoList(response.data.incomeCategoryInfoList);
@@ -178,7 +178,7 @@ export default function Fixed({
             : null;
 
         axios
-            .post("/fixed-income/create", {
+            .post("/api/fixed-income/create", {
                 income_name: incomeName,
                 income_category_id: incomeCategoryId,
                 income_amount: incomeAmount,
@@ -249,7 +249,7 @@ export default function Fixed({
     };
 
     const deleteIncome = (incomeId) => {
-        if (!confirm("本当にこの固定収入を削除しますか？")) {
+        if (!window.confirm("本当にこの固定収入を削除しますか？")) {
             return;
         }
 

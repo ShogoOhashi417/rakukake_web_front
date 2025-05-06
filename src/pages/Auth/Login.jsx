@@ -1,132 +1,151 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Checkbox from '../../components/Checkbox';
+import InputError from '../../components/InputError';
+import InputLabel from '../../components/InputLabel';
+import { Button } from "../../components/ui/button";
+import TextInput from '../../components/TextInput';
 import { Link, useNavigate } from 'react-router-dom';
-import GuestLayout from '../../layouts/GuestLayout';
-import { Button } from '../../components/ui/button';
+import { Wallet } from "lucide-react";
 
-const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [remember, setRemember] = useState(false);
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+export default function Login() {
     const navigate = useNavigate();
+    const [status, setStatus] = useState(null);
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [data, setData] = useState({
+        email: '',
+        password: '',
+        remember: false,
+    });
 
-    const handleSubmit = async (e) => {
+    const setFormData = (key, value) => {
+        setData(prevData => ({
+            ...prevData,
+            [key]: value
+        }));
+    };
+
+    const reset = (field) => {
+        setData(prevData => ({
+            ...prevData,
+            [field]: ''
+        }));
+    };
+
+    useEffect(() => {
+        return () => {
+            reset('password');
+        };
+    }, []);
+
+    const submit = (e) => {
         e.preventDefault();
-        setError('');
-        setIsLoading(true);
-
-        try {
-            // 実際のアプリでは、ここでAPIリクエストを行います
-            // const response = await fetch('/api/login', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ email, password, remember }),
-            // });
-            // 
-            // if (!response.ok) {
-            //     const data = await response.json();
-            //     throw new Error(data.message || 'ログインに失敗しました');
-            // }
-            // 
-            // const userData = await response.json();
-            // localStorage.setItem('user', JSON.stringify(userData.user));
-
-            // モック認証処理（開発用）
-            console.log('Login attempt:', { email, password, remember });
-            
-            // モックユーザー情報の作成と保存
-            const mockUser = {
-                id: 1,
-                name: email.split('@')[0], // メールアドレスからユーザー名を生成
-                email: email,
-            };
-            
-            // ユーザー情報をローカルストレージに保存
-            localStorage.setItem('user', JSON.stringify(mockUser));
-            
-            // 認証成功としてダッシュボードへリダイレクト
-            setTimeout(() => {
+        setProcessing(true);
+        
+        // TODO: APIを使用して実際のログイン処理を実装
+        // ここではダミーのAPI呼び出しをシミュレート
+        setTimeout(() => {
+            if (data.email && data.password) {
+                // 成功時の処理
+                localStorage.setItem('user', JSON.stringify({ email: data.email }));
                 navigate('/dashboard');
-                setIsLoading(false);
-            }, 1000);
-        } catch (err) {
-            setError(err.message || 'ログインに失敗しました');
-            setIsLoading(false);
-        }
+            } else {
+                // エラー時の処理
+                setErrors({
+                    email: !data.email ? 'メールアドレスは必須です。' : null,
+                    password: !data.password ? 'パスワードは必須です。' : null
+                });
+            }
+            setProcessing(false);
+        }, 1000);
     };
 
     return (
-        <GuestLayout>
-            <div className="mb-4 text-sm text-gray-600">
-                アカウントをお持ちの方はログインしてください。
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+            <div className="container mx-auto px-4 py-12">
+                <header className="flex justify-center items-center mb-12">
+                    <div className="flex items-center gap-2">
+                        <Wallet className="h-6 w-6 text-green-600" />
+                        <h1 className="text-2xl font-bold text-green-800">かけいぼ</h1>
+                    </div>
+                </header>
+
+                <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+                    <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">ログイン</h2>
+
+                    {status && <div className="mb-6 text-sm text-green-600 bg-green-50 p-3 rounded-md">{status}</div>}
+
+                    <form onSubmit={submit}>
+                        <div className="space-y-6">
+                            <div>
+                                <InputLabel htmlFor="email" value="メールアドレス" className="text-gray-700" />
+                                <TextInput
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    value={data.email}
+                                    className="mt-1 block w-full rounded-md border-gray-300"
+                                    autoComplete="username"
+                                    isFocused={true}
+                                    onChange={(e) => setFormData('email', e.target.value)}
+                                />
+                                <InputError message={errors.email} className="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel htmlFor="password" value="パスワード" className="text-gray-700" />
+                                <TextInput
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    value={data.password}
+                                    className="mt-1 block w-full rounded-md border-gray-300"
+                                    autoComplete="current-password"
+                                    onChange={(e) => setFormData('password', e.target.value)}
+                                />
+                                <InputError message={errors.password} className="mt-2" />
+                            </div>
+
+                            <div className="flex items-center">
+                                <label className="flex items-center">
+                                    <Checkbox
+                                        name="remember"
+                                        checked={data.remember}
+                                        onChange={(e) => setFormData('remember', e.target.checked)}
+                                        className="rounded border-gray-300 text-green-600 shadow-sm focus:ring-green-500"
+                                    />
+                                    <span className="ms-2 text-sm text-gray-600">ログイン状態を保持する</span>
+                                </label>
+                            </div>
+
+                            <div className="flex flex-col items-center gap-4">
+                                <Button 
+                                    className="w-full bg-green-600 hover:bg-green-700" 
+                                    disabled={processing}
+                                >
+                                    ログイン
+                                </Button>
+
+                                <div className="flex flex-col items-center gap-2 text-sm">
+                                    <Link
+                                        to="/register"
+                                        className="text-gray-600 hover:text-green-600"
+                                    >
+                                        アカウントをお持ちでない方はこちら
+                                    </Link>
+
+                                    <Link
+                                        to="/forgot-password"
+                                        className="text-gray-600 hover:text-green-600"
+                                    >
+                                        パスワードをお忘れの方はこちら
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded">
-                    {error}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label className="block font-medium text-sm text-gray-700" htmlFor="email">
-                        メールアドレス
-                    </label>
-                    <input
-                        id="email"
-                        type="email"
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        autoFocus
-                    />
-                </div>
-
-                <div className="mt-4">
-                    <label className="block font-medium text-sm text-gray-700" htmlFor="password">
-                        パスワード
-                    </label>
-                    <input
-                        id="password"
-                        type="password"
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        autoComplete="current-password"
-                    />
-                </div>
-
-                <div className="block mt-4">
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                            checked={remember}
-                            onChange={(e) => setRemember(e.target.checked)}
-                        />
-                        <span className="ms-2 text-sm text-gray-600">ログイン状態を保存</span>
-                    </label>
-                </div>
-
-                <div className="flex items-center justify-end mt-4">
-                    <Link to="/forgot-password" className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        パスワードをお忘れですか？
-                    </Link>
-
-                    <Button 
-                        className="ms-4 bg-green-600 hover:bg-green-700" 
-                        type="submit"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'ログイン中...' : 'ログイン'}
-                    </Button>
-                </div>
-            </form>
-        </GuestLayout>
+        </div>
     );
-};
-
-export default Login; 
+}
