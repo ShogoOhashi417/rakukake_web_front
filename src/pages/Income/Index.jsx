@@ -48,13 +48,11 @@ export default function Income() {
     const [incomeCategoryId, setIncomeCategoryId] = useState(0);
     const [incomeAmount, setIncomeAmount] = useState(0);
     
-    // Initialize this above the useEffect to prevent race conditions
     const [incomeInfoList, setincomeInfoList] = useState([]);
 
     const getInfo = async () => {
         try {
             const incomes = await incomeService.getIncomeList();
-            console.error(incomes);
             setincomeInfoList(incomes);
         } catch (error) {
             console.error('Error fetching income data:', error);
@@ -361,104 +359,120 @@ export default function Income() {
                 </div>
             </div>
 
-            {/* 収入追加モーダル */}
-            <div ref={addIncomeRef} id="add_income" tabIndex="-1" aria-hidden="true" className="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                <div className="relative w-full max-w-md max-h-full">
-                    <div className="relative bg-white rounded-lg shadow">
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                収入追加
-                            </h3>
-                            <button type="button" onClick={closeModal} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                                <X className="w-4 h-4" />
-                                <span className="sr-only">閉じる</span>
-                            </button>
-                        </div>
-                        <div className="p-4 md:p-5">
-                            <form className="space-y-4">
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">収入名</label>
-                                    <input type="text" value={incomeName} onChange={changeIncomeName} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="収入名" required />
+            <div
+                ref={addIncomeRef}
+                id="add_income"
+                tabIndex="-1"
+                aria-hidden="true"
+                className="fixed top-0 left-0 w-full h-full flex items-center justify-center hidden"
+            >
+                <div
+                    onClick={closeModal}
+                    className="absolute w-full h-full bg-gray-900 opacity-50"
+                >
+                </div>
+                <div className="z-10 bg-white p-6 rounded shadow-lg w-1/2">
+                    <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            収入を登録する
+                        </h3>
+                        <button type="button" onClick={closeModal} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                            <X className="w-4 h-4" />
+                            <span className="sr-only">閉じる</span>
+                        </button>
+                    </div>
+                    <div className="p-4 md:p-5">
+                        <form className="space-y-4">
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">収入名</label>
+                                <input type="text" value={incomeName} onChange={changeIncomeName} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="収入名" required />
+                            </div>
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">カテゴリー</label>
+                                <select onChange={changeIncomeCategoryId} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <option value="">選択してください</option>
+                                    {incomeCategoryInfoList.map((category, index) => (
+                                        <option key={index} value={category.id}>{category.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">金額</label>
+                                <input type="number" value={incomeAmount} onChange={changeIncomeAmount} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="金額" required />
+                            </div>
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">日付</label>
+                                <div className="bg-gray-50 border border-gray-300 rounded-lg p-2">
+                                    <DatePicker
+                                        selected={selectedDay}
+                                        onChange={(date) => setSelectedDay(date)}
+                                        dateFormat="yyyy/MM/dd"
+                                        className="w-full bg-transparent"
+                                        locale={ja}
+                                    />
                                 </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">カテゴリー</label>
-                                    <select onChange={changeIncomeCategoryId} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        <option value="">選択してください</option>
-                                        {incomeCategoryInfoList.map((category, index) => (
-                                            <option key={index} value={category.id}>{category.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">金額</label>
-                                    <input type="number" value={incomeAmount} onChange={changeIncomeAmount} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="金額" required />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">日付</label>
-                                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-2">
-                                        <DatePicker
-                                            selected={selectedDay}
-                                            onChange={(date) => setSelectedDay(date)}
-                                            dateFormat="yyyy/MM/dd"
-                                            className="w-full bg-transparent"
-                                            locale={ja}
-                                        />
-                                    </div>
-                                </div>
-                                <button type="button" onClick={addIncome} className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">追加</button>
-                            </form>
-                        </div>
+                            </div>
+                            <button type="button" onClick={addIncome} className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">追加</button>
+                        </form>
                     </div>
                 </div>
             </div>
 
-            {/* 収入更新モーダル */}
-            <div ref={updateIncomeRef} id="update_income" tabIndex="-1" aria-hidden="true" className="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                <div className="relative w-full max-w-md max-h-full">
-                    <div className="relative bg-white rounded-lg shadow">
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                収入更新
-                            </h3>
-                            <button type="button" onClick={closeModal} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                                <X className="w-4 h-4" />
-                                <span className="sr-only">閉じる</span>
-                            </button>
-                        </div>
-                        <div className="p-4 md:p-5">
-                            <form className="space-y-4">
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">収入名</label>
-                                    <input type="text" value={incomeName} onChange={changeIncomeName} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="収入名" required />
+            <div
+                ref={updateIncomeRef}
+                id="update_income"
+                tabIndex="-1"
+                aria-hidden="true"
+                className="fixed top-0 left-0 w-full h-full flex items-center justify-center hidden"
+            >
+                <div
+                    onClick={closeModal}
+                    className="absolute w-full h-full bg-gray-900 opacity-50"
+                >
+                </div>
+            <div className="z-10 bg-white p-6 rounded shadow-lg w-1/2">
+                <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                            収入更新
+                        </h3>
+                        <button type="button" onClick={closeModal} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+                            <X className="w-4 h-4" />
+                            <span className="sr-only">閉じる</span>
+                        </button>
+                    </div>
+                    <div className="p-4 md:p-5">
+                        <form className="space-y-4">
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">収入名</label>
+                                <input type="text" value={incomeName} onChange={changeIncomeName} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="収入名" required />
+                            </div>
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">カテゴリー</label>
+                                <select value={incomeCategoryId} onChange={changeIncomeCategoryId} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <option value="">選択してください</option>
+                                    {incomeCategoryInfoList.map((category, index) => (
+                                        <option key={index} value={category.id}>{category.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">金額</label>
+                                <input type="number" value={incomeAmount} onChange={changeIncomeAmount} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="金額" required />
+                            </div>
+                            <div>
+                                <label className="block mb-2 text-sm font-medium text-gray-900">日付</label>
+                                <div className="bg-gray-50 border border-gray-300 rounded-lg p-2">
+                                    <DatePicker
+                                        selected={selectedDay}
+                                        onChange={(date) => setSelectedDay(date)}
+                                        dateFormat="yyyy/MM/dd"
+                                        className="w-full bg-transparent"
+                                        locale={ja}
+                                    />
                                 </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">カテゴリー</label>
-                                    <select value={incomeCategoryId} onChange={changeIncomeCategoryId} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        <option value="">選択してください</option>
-                                        {incomeCategoryInfoList.map((category, index) => (
-                                            <option key={index} value={category.id}>{category.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">金額</label>
-                                    <input type="number" value={incomeAmount} onChange={changeIncomeAmount} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="金額" required />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">日付</label>
-                                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-2">
-                                        <DatePicker
-                                            selected={selectedDay}
-                                            onChange={(date) => setSelectedDay(date)}
-                                            dateFormat="yyyy/MM/dd"
-                                            className="w-full bg-transparent"
-                                            locale={ja}
-                                        />
-                                    </div>
-                                </div>
-                                <button type="button" onClick={updateIncome} className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">更新</button>
-                            </form>
-                        </div>
+                            </div>
+                            <button type="button" onClick={updateIncome} className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">更新</button>
+                        </form>
                     </div>
                 </div>
             </div>
