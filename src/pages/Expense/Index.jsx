@@ -1,5 +1,6 @@
 import React from "react";
 import { useRef, useState, useEffect } from "react";
+import { PlusCircle, X, Edit, Trash2 } from "lucide-react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -235,13 +236,10 @@ export default function Expense({
                                                 >
                                                     カテゴリー{getSortIcon('category_name')}
                                                 </th>
-                                                <th className="w-10">
+                                                <th className='w-10'>
                                                     <div className="flex justify-center items-center">
-                                                        <button
-                                                            onClick={openAddModal}
-                                                            className="text-blue-500 hover:text-blue-700 text-xl font-bold"
-                                                        >
-                                                            ＋
+                                                        <button onClick={openAddModal}>
+                                                            <PlusCircle className="h-5 w-5" />
                                                         </button>
                                                     </div>
                                                 </th>

@@ -53,6 +53,7 @@ export default function Income() {
     const getInfo = async () => {
         try {
             const incomes = await incomeService.getIncomeList();
+            console.error(incomes);
             setincomeInfoList(incomes);
         } catch (error) {
             console.error('Error fetching income data:', error);
