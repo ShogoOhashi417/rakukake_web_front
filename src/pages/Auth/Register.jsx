@@ -62,9 +62,8 @@ export default function Register() {
         // TODO: APIを使用して実際の登録処理を実装
         // ここではダミーのAPI呼び出しをシミュレート
         setTimeout(() => {
-            // 成功時の処理
             localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email }));
-            navigate('/dashboard');
+            navigate('/report/savings');
             setProcessing(false);
         }, 1000);
     };

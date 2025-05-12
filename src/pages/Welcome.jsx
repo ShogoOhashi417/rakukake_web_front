@@ -8,9 +8,7 @@ const Welcome = () => {
     const [auth, setAuth] = useState({ user: null });
     const navigate = useNavigate();
 
-    // コンポーネントマウント時に認証状態を確認
     useEffect(() => {
-        // ローカルストレージからユーザー情報を取得
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
@@ -22,7 +20,6 @@ const Welcome = () => {
         }
     }, []);
 
-    // ログアウト処理
     const handleLogout = () => {
         localStorage.removeItem('user');
         setAuth({ user: null });
@@ -36,7 +33,7 @@ const Welcome = () => {
                     <header className="flex justify-between items-center mb-12">
                         <div className="flex items-center gap-2">
                             <Wallet className="h-6 w-6 text-green-600" />
-                            <h1 className="text-2xl font-bold text-green-800">楽家計</h1>
+                            <h1 className="text-2xl font-bold text-green-800">らくかけ</h1>
                         </div>
                     
                         <div className="flex gap-4">
