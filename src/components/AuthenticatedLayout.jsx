@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-// ドロップダウンコンポーネント
 const Dropdown = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = React.useRef(null);
   
-  // 外側クリックで閉じる
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -59,7 +57,24 @@ Dropdown.Content = ({ children, isOpen, setIsOpen }) => {
   );
 };
 
-Dropdown.Link = ({ href, children, active, setIsOpen }) => {
+Dropdown.Link = ({ href, children, active, setIsOpen, onClick }) => {
+  if (onClick) {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          onClick();
+          setIsOpen && setIsOpen(false);
+        }}
+        className={`block w-full text-left px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out ${
+          active ? "bg-gray-100" : ""
+        }`}
+      >
+        {children}
+      </button>
+    );
+  }
+  
   return (
     <Link
       to={href}
@@ -89,8 +104,22 @@ const NavLink = ({ to, children, active }) => {
   );
 };
 
-// レスポンシブナビゲーションリンク
-const ResponsiveNavLink = ({ to, children, active }) => {
+const ResponsiveNavLink = ({ to, children, active, onClick }) => {
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={`block w-full text-left pl-3 pr-4 py-2 border-l-4 text-base font-medium leading-5 focus:outline-none transition duration-150 ease-in-out ${
+          active
+            ? "border-indigo-400 text-indigo-700 bg-indigo-50 focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700"
+            : "border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300"
+        }`}
+      >
+        {children}
+      </button>
+    );
+  }
+  
   return (
     <Link
       to={to}
@@ -105,7 +134,6 @@ const ResponsiveNavLink = ({ to, children, active }) => {
   );
 };
 
-// ロゴコンポーネント
 const ApplicationLogo = ({ className }) => {
   return (
     <div className={className}>
@@ -117,15 +145,45 @@ const ApplicationLogo = ({ className }) => {
 export default function AuthenticatedLayout({ user = { name: 'ユーザー', email: 'user@example.com' }, header, children }) {
   const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   
   // 現在のパスがアクティブかどうかを判断する関数
   const isActive = (path) => {
     return location.pathname === path;
   };
   
-  // パスが特定のプレフィックスで始まるかどうかを判断する関数
   const isActivePrefix = (prefix) => {
     return location.pathname.startsWith(prefix);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-XSRF-TOKEN': getCookie('XSRF-TOKEN'),
+        },
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else {
+        console.error('ログアウトに失敗しました');
+      }
+    } catch (error) {
+      console.error('ログアウト中にエラーが発生しました:', error);
+    }
+  };
+
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
   };
 
   return (
@@ -304,7 +362,7 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                     <Dropdown.Link href="/profile" active={isActive("/profile")}>
                       プロフィール
                     </Dropdown.Link>
-                    <Dropdown.Link href="/logout">
+                    <Dropdown.Link onClick={handleLogout}>
                       ログアウト
                     </Dropdown.Link>
                   </Dropdown.Content>
@@ -368,7 +426,7 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
 
             <div className="mt-3 space-y-1">
               <ResponsiveNavLink to="/profile">プロフィール</ResponsiveNavLink>
-              <ResponsiveNavLink to="/logout">ログアウト</ResponsiveNavLink>
+              <ResponsiveNavLink onClick={handleLogout}>ログアウト</ResponsiveNavLink>
             </div>
           </div>
         </div>
