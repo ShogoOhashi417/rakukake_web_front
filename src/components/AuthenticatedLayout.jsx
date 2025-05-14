@@ -175,7 +175,10 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
         console.error('ログアウトに失敗しました');
       }
     } catch (error) {
-      console.error('ログアウト中にエラーが発生しました:', error);
+      localStorage.removeItem('token');
+      navigate('/login');
+
+      return;
     }
   };
 

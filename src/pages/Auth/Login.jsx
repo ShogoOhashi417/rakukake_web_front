@@ -48,7 +48,7 @@ export default function Login() {
             if (data.email && data.password) {
                 // 成功時の処理
                 localStorage.setItem('user', JSON.stringify({ email: data.email }));
-                navigate('/dashboard');
+                navigate('/report/savings');
             } else {
                 // エラー時の処理
                 setErrors({
