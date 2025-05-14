@@ -40,7 +40,7 @@ export default function Register() {
         };
     }, []);
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
         setProcessing(true);
         
@@ -59,13 +59,66 @@ export default function Register() {
             return;
         }
         
-        // TODO: APIを使用して実際の登録処理を実装
-        // ここではダミーのAPI呼び出しをシミュレート
-        setTimeout(() => {
+        try {
+            await fetch(`${process.env.REACT_APP_API_URL || ''}/sanctum/csrf-cookie`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            }
+            
+            const token = getCookie('XSRF-TOKEN');
+            
+            const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': token ? decodeURIComponent(token) : '',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    name: data.name,
+                    email: data.email,
+                    password: data.password,
+                    password_confirmation: data.password_confirmation,
+                }),
+            });
+            
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+                if (responseData.errors) {
+                    setErrors(responseData.errors);
+                    console.error('Validation errors:', responseData.errors);
+                } else {
+                    setErrors({ general: 'ユーザー登録に失敗しました。' });
+                    console.error('Registration failed:', responseData);
+                }
+                setProcessing(false);
+                return;
+            }
+            
             localStorage.setItem('user', JSON.stringify({ name: data.name, email: data.email }));
             navigate('/report/savings');
+        } catch (error) {
+            console.error('登録エラー詳細:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+                error
+            });
+            
+            setErrors({ general: 'サーバーとの通信中にエラーが発生しました。' });
+        } finally {
             setProcessing(false);
-        }, 1000);
+        }
     };
 
     return (
@@ -80,6 +133,8 @@ export default function Register() {
 
                 <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
                     <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">新規アカウント登録</h2>
+
+                    {errors.general && <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">{errors.general}</div>}
 
                     <form onSubmit={submit}>
                         <div className="space-y-6">
