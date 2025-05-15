@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// バックエンドサーバーのベースURLを設定
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   headers: {
