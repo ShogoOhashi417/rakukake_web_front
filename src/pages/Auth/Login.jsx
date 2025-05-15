@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/button";
 import TextInput from '../../components/TextInput';
 import { Link, useNavigate } from 'react-router-dom';
 import { Wallet } from "lucide-react";
+import apiClient from '../../api/client';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -17,6 +18,18 @@ export default function Login() {
         password: '',
         remember: false,
     });
+
+    useEffect(() => {
+        const getCsrfToken = async () => {
+            try {
+                await apiClient.get('/sanctum/csrf-cookie');
+            } catch (error) {
+                console.error('CSRF token fetch error:', error);
+            }
+        };
+        
+        getCsrfToken();
+    }, []);
 
     const setFormData = (key, value) => {
         setData(prevData => ({
@@ -38,26 +51,41 @@ export default function Login() {
         };
     }, []);
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
         setProcessing(true);
+        setErrors({});
         
-        // TODO: APIを使用して実際のログイン処理を実装
-        // ここではダミーのAPI呼び出しをシミュレート
-        setTimeout(() => {
-            if (data.email && data.password) {
-                // 成功時の処理
-                localStorage.setItem('user', JSON.stringify({ email: data.email }));
-                navigate('/report/savings');
-            } else {
-                // エラー時の処理
-                setErrors({
-                    email: !data.email ? 'メールアドレスは必須です。' : null,
-                    password: !data.password ? 'パスワードは必須です。' : null
-                });
+        try {
+            const response = await apiClient.post('/api/login', {
+                email: data.email,
+                password: data.password,
+                remember: data.remember
+            });
+            
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
             }
+            
+            localStorage.setItem('user', JSON.stringify(response.data.user || { email: data.email }));
+            
+            if (response.data.token) {
+                apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+            }
+            
+            navigate('/report/savings');
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                setErrors(error.response.data.errors);
+            } else if (error.response && error.response.data.message) {
+                setStatus(error.response.data.message);
+            } else {
+                setStatus('ログインに失敗しました。再度お試しください。');
+                console.error('Login error:', error);
+            }
+        } finally {
             setProcessing(false);
-        }, 1000);
+        }
     };
 
     return (
