@@ -13,6 +13,8 @@ import Report from './pages/Report/Saving';
 import ReportExpense from './pages/Report/Expense';
 import BulkOperation from './pages/BulkOperation/ExpenseBulkOperation';
 import Edit from './pages/Profile/Edit';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+
 // ユーザープロフィールページのコンポーネント
 const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -77,6 +79,7 @@ function App() {
       <Route path="/" element={<Welcome />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route path="/profile" element={<Edit />} />
 

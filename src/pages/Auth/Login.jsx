@@ -146,32 +146,32 @@ export default function Login() {
                                 </label>
                             </div>
 
-                            <div className="flex flex-col items-center gap-4">
+                            <div className="flex items-center justify-center">
                                 <Button 
                                     className="w-full bg-green-600 hover:bg-green-700" 
                                     disabled={processing}
                                 >
                                     ログイン
                                 </Button>
-
-                                <div className="flex flex-col items-center gap-2 text-sm">
-                                    <Link
-                                        to="/register"
-                                        className="text-gray-600 hover:text-green-600"
-                                    >
-                                        アカウントをお持ちでない方はこちら
-                                    </Link>
-
-                                    <Link
-                                        to="/forgot-password"
-                                        className="text-gray-600 hover:text-green-600"
-                                    >
-                                        パスワードをお忘れの方はこちら
-                                    </Link>
-                                </div>
                             </div>
                         </div>
                     </form>
+                    
+                    <div className="flex flex-col items-center gap-2 text-sm mt-4">
+                        <Link
+                            to="/register"
+                            className="text-gray-600 hover:text-green-600"
+                        >
+                            アカウントをお持ちでない方はこちら
+                        </Link>
+
+                        <Link
+                            to="/forgot-password"
+                            className="text-gray-600 hover:text-green-600"
+                        >
+                            パスワードをお忘れの方はこちら
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
