@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://rakukake.onrender.com",
+  "proxy": "http://localhost:8000",
   "engines": {
     "node": ">=18.0.0"
   },

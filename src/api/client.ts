@@ -1,12 +1,12 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: '',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: false,  // CORSの問題を回避するためfalseに設定
+  withCredentials: false,  // CORSでクッキーを送信するためtrueに設定
 });
 
 // リクエスト時の共通処理
