@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import { X, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
-
+import PrimaryButton from "../../components/PrimaryButton";
+import SecondaryButton from "../../components/SecondaryButton";
 export default function Category() {
     // モックユーザー情報
     const [user, setUser] = useState(null);
@@ -111,9 +112,7 @@ export default function Category() {
         setExpenditureCategoryName(event.target.value);
     };
 
-    // 収入カテゴリーの追加
     const addIncomeCategory = () => {
-        // モックでデータを追加
         const newIncomeCategory = {
             id: incomeCategoryInfoList.length + 1,
             name: incomeCategoryName
@@ -376,18 +375,19 @@ export default function Category() {
                                 />
                             </div>
                             <div className="flex justify-end">
-                                <Button
+                                <SecondaryButton
                                     onClick={closeModal}
                                     variant="outline"
                                     className="mr-2"
                                 >
                                     キャンセル
-                                </Button>
-                                <Button
+                                </SecondaryButton>
+                                <PrimaryButton
+                                    className="ms-3"
                                     onClick={addIncomeCategory}
                                 >
-                                    登録
-                                </Button>
+                                    収入カテゴリーを追加する
+                                </PrimaryButton>
                             </div>
                         </div>
                     </div>
