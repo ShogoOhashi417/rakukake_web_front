@@ -63,15 +63,12 @@ export default function Category() {
     const [editIncomeCategory, setEditIncomeCategory] = useState(false);
     const [editExpenditureCategory, setEditExpenditureCategory] = useState(false);
 
-    // 収入カテゴリーの状態管理
     const [incomeCategoryId, setIncomeCategoryId] = useState(0);
     const [incomeCategoryName, setIncomeCategoryName] = useState("");
 
-    // 支出カテゴリーの状態管理
     const [expenditureCategoryId, setExpenditureCategoryId] = useState(0);
     const [expenditureCategoryName, setExpenditureCategoryName] = useState("");
 
-    // モーダル表示・非表示の制御
     const showAddCategoryModal = () => {
         setAddCategory(true);
     };
@@ -108,15 +105,18 @@ export default function Category() {
         setExpenditureCategoryName(event.target.value);
     };
 
-    const addIncomeCategory = () => {
-        const newIncomeCategory = {
-            id: incomeCategoryInfoList.length + 1,
-            name: incomeCategoryName
-        };
-        
-        setIncomeCategoryInfoList([...incomeCategoryInfoList, newIncomeCategory]);
-        closeModal();
-        setIncomeCategoryName("");
+    const addIncomeCategory = async () => {
+        try {
+            const response = await categoryService.addIncomeCategory(incomeCategoryName);
+            
+            setIncomeCategoryInfoList([...incomeCategoryInfoList, response]);
+            
+            closeModal();
+            setIncomeCategoryName("");
+        } catch (error) {
+            console.error("カテゴリー追加中にエラーが発生しました", error);
+            alert("カテゴリーの追加に失敗しました。");
+        }
     };
 
     // 支出カテゴリーの追加
