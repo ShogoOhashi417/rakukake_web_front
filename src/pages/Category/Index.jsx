@@ -4,12 +4,13 @@ import { X, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import PrimaryButton from "../../components/PrimaryButton";
 import SecondaryButton from "../../components/SecondaryButton";
+import { categoryService } from "../../api/services/categoryService";
+import { userService } from "../../api/services/userService";
+
 export default function Category() {
-    // モックユーザー情報
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // モックデータ
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([
         { id: 1, name: "給与" },
         { id: 2, name: "臨時収入" },
@@ -32,22 +33,17 @@ export default function Category() {
     ]);
 
     useEffect(() => {
-        // ローカルストレージからユーザー情報を取得
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const fetchUser = async () => {
             try {
-                const userData = JSON.parse(storedUser);
+                const userData = await userService.getProfile();
                 setUser(userData);
             } catch (e) {
-                console.error('認証情報の解析に失敗しました', e);
-                localStorage.removeItem('user');
                 window.location.href = '/login';
+            } finally {
+                setLoading(false);
             }
-        } else {
-            // 認証されていない場合はログインページにリダイレクト
-            window.location.href = '/login';
-        }
-        setLoading(false);
+        };
+        fetchUser();
     }, []);
 
     const [activeTab, setActiveTab] = useState("income");
