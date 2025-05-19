@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import { X, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
+import PrimaryButton from "../../components/PrimaryButton";
+import SecondaryButton from "../../components/SecondaryButton";
+import { categoryService } from "../../api/services/categoryService";
+import { userService } from "../../api/services/userService";
 
 export default function Category() {
-    // モックユーザー情報
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // モックデータ
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([
         { id: 1, name: "給与" },
         { id: 2, name: "臨時収入" },
@@ -31,22 +33,17 @@ export default function Category() {
     ]);
 
     useEffect(() => {
-        // ローカルストレージからユーザー情報を取得
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const fetchUser = async () => {
             try {
-                const userData = JSON.parse(storedUser);
+                const userData = await userService.getProfile();
                 setUser(userData);
             } catch (e) {
-                console.error('認証情報の解析に失敗しました', e);
-                localStorage.removeItem('user');
                 window.location.href = '/login';
+            } finally {
+                setLoading(false);
             }
-        } else {
-            // 認証されていない場合はログインページにリダイレクト
-            window.location.href = '/login';
-        }
-        setLoading(false);
+        };
+        fetchUser();
     }, []);
 
     const [activeTab, setActiveTab] = useState("income");
@@ -66,15 +63,12 @@ export default function Category() {
     const [editIncomeCategory, setEditIncomeCategory] = useState(false);
     const [editExpenditureCategory, setEditExpenditureCategory] = useState(false);
 
-    // 収入カテゴリーの状態管理
     const [incomeCategoryId, setIncomeCategoryId] = useState(0);
     const [incomeCategoryName, setIncomeCategoryName] = useState("");
 
-    // 支出カテゴリーの状態管理
     const [expenditureCategoryId, setExpenditureCategoryId] = useState(0);
     const [expenditureCategoryName, setExpenditureCategoryName] = useState("");
 
-    // モーダル表示・非表示の制御
     const showAddCategoryModal = () => {
         setAddCategory(true);
     };
@@ -111,17 +105,18 @@ export default function Category() {
         setExpenditureCategoryName(event.target.value);
     };
 
-    // 収入カテゴリーの追加
-    const addIncomeCategory = () => {
-        // モックでデータを追加
-        const newIncomeCategory = {
-            id: incomeCategoryInfoList.length + 1,
-            name: incomeCategoryName
-        };
-        
-        setIncomeCategoryInfoList([...incomeCategoryInfoList, newIncomeCategory]);
-        closeModal();
-        setIncomeCategoryName("");
+    const addIncomeCategory = async () => {
+        try {
+            const response = await categoryService.addIncomeCategory(incomeCategoryName);
+            
+            setIncomeCategoryInfoList([...incomeCategoryInfoList, response]);
+            
+            closeModal();
+            setIncomeCategoryName("");
+        } catch (error) {
+            console.error("カテゴリー追加中にエラーが発生しました", error);
+            alert("カテゴリーの追加に失敗しました。");
+        }
     };
 
     // 支出カテゴリーの追加
@@ -376,18 +371,19 @@ export default function Category() {
                                 />
                             </div>
                             <div className="flex justify-end">
-                                <Button
+                                <SecondaryButton
                                     onClick={closeModal}
                                     variant="outline"
                                     className="mr-2"
                                 >
                                     キャンセル
-                                </Button>
-                                <Button
+                                </SecondaryButton>
+                                <PrimaryButton
+                                    className="ms-3"
                                     onClick={addIncomeCategory}
                                 >
-                                    登録
-                                </Button>
+                                    収入カテゴリーを追加する
+                                </PrimaryButton>
                             </div>
                         </div>
                     </div>
