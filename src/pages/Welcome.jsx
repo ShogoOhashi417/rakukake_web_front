@@ -3,27 +3,32 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Wallet, PieChart, TrendingUp } from "lucide-react";
+import apiClient from '../api/client';
 
 const Welcome = () => {
-    const [auth, setAuth] = useState({ user: null });
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const fetchUser = async () => {
             try {
-                setAuth({ user: JSON.parse(storedUser) });
+                const res = await apiClient.get('/api/user');
+                setUser(res.data);
             } catch (e) {
-                console.error('認証情報の解析に失敗しました', e);
-                localStorage.removeItem('user');
+                setUser(null);
             }
-        }
+        };
+        fetchUser();
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        setAuth({ user: null });
-        navigate('/');
+    const handleLogout = async () => {
+        try {
+            await apiClient.post('/api/logout');
+            setUser(null);
+            navigate('/');
+        } catch (e) {
+            alert('ログアウトに失敗しました');
+        }
     };
 
     return (
@@ -37,7 +42,7 @@ const Welcome = () => {
                         </div>
                     
                         <div className="flex gap-4">
-                            {auth.user ? (
+                            {user ? (
                                 <>
                                     <Button className="bg-green-600 hover:bg-green-700" asChild>
                                         <Link to="/report/savings">ダッシュボード</Link>
@@ -65,7 +70,7 @@ const Welcome = () => {
                             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
                             日々の支出を簡単に記録し、あなたの家計をスマートに管理しましょう。
                             </p>
-                            {auth.user ? (
+                            {user ? (
                                 <Button size="lg" className="bg-green-600 hover:bg-green-700" asChild>
                                     <Link to="/report/savings">ダッシュボードへ</Link>
                                 </Button>

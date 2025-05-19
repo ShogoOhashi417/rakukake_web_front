@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import { X, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -10,6 +11,7 @@ import { userService } from "../../api/services/userService";
 export default function Category() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([
         { id: 1, name: "給与" },
@@ -37,14 +39,15 @@ export default function Category() {
             try {
                 const userData = await userService.getProfile();
                 setUser(userData);
-            } catch (e) {
-                window.location.href = '/login';
-            } finally {
                 setLoading(false);
+            } catch (e) {
+                setUser(null);
+                setLoading(false);
+                navigate('/');
             }
         };
         fetchUser();
-    }, []);
+    }, [navigate]);
 
     const [activeTab, setActiveTab] = useState("income");
 
