@@ -13,26 +13,8 @@ export default function Category() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([
-        { id: 1, name: "給与" },
-        { id: 2, name: "臨時収入" },
-        { id: 3, name: "副収入" },
-        { id: 4, name: "その他" },
-    ]);
-
-    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([
-        { id: 1, name: "食費" },
-        { id: 2, name: "日用品" },
-        { id: 3, name: "交通費" },
-        { id: 4, name: "光熱費" },
-        { id: 5, name: "通信費" },
-        { id: 6, name: "住居費" },
-        { id: 7, name: "教育費" },
-        { id: 8, name: "医療費" },
-        { id: 9, name: "交際費" },
-        { id: 10, name: "娯楽費" },
-        { id: 11, name: "その他" },
-    ]);
+    const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([]);
+    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -49,6 +31,37 @@ export default function Category() {
         fetchUser();
     }, [navigate]);
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const [incomeCategories, expenditureCategories] = await Promise.all([
+                    categoryService.getIncomeCategories(),
+                    categoryService.getExpenditureCategories()
+                ]);
+                
+                let mappedIncomeCategories = [];
+                let mappedExpenditureCategories = [];
+                
+                mappedIncomeCategories = incomeCategories.income_category_info_list.map(category => ({
+                    id: category.id,
+                    name: category.name
+                }));
+                
+                mappedExpenditureCategories = expenditureCategories.expenditure_category_info_list.map(category => ({
+                    id: category.id,
+                    name: category.name
+                }));
+
+                setIncomeCategoryInfoList(mappedIncomeCategories);
+                setExpenditureCategoryInfoList(mappedExpenditureCategories);
+            } catch (e) {
+                setIncomeCategoryInfoList([]);
+                setExpenditureCategoryInfoList([]);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     const [activeTab, setActiveTab] = useState("income");
 
     const changeActiveTab = (tab) => {
@@ -60,7 +73,6 @@ export default function Category() {
     const inactiveTabClassAttribute =
         "bg-white inline-block py-2 px-4 text-blue-300 hover:text-blue-800 font-semibold cursor-pointer";
 
-    // モーダル状態の管理
     const [addCategory, setAddCategory] = useState(false);
     const [addExpenditureCategory, setAddExpenditureCategory] = useState(false);
     const [editIncomeCategory, setEditIncomeCategory] = useState(false);
@@ -99,7 +111,6 @@ export default function Category() {
         setEditIncomeCategory(false);
     };
 
-    // イベントハンドラー
     const changeIncomeCaterogyName = (event) => {
         setIncomeCategoryName(event.target.value);
     };
@@ -112,7 +123,12 @@ export default function Category() {
         try {
             const response = await categoryService.addIncomeCategory(incomeCategoryName);
             
-            setIncomeCategoryInfoList([...incomeCategoryInfoList, response]);
+            const newCategory = {
+                id: response.categoryData.id,
+                name: response.categoryData.name
+            };
+            
+            setIncomeCategoryInfoList([...incomeCategoryInfoList, newCategory]);
             
             closeModal();
             setIncomeCategoryName("");
@@ -122,85 +138,110 @@ export default function Category() {
         }
     };
 
-    // 支出カテゴリーの追加
-    const saveExpenditureCategory = () => {
-        // モックでデータを追加
-        const newExpenditureCategory = {
-            id: expenditureCategoryInfoList.length + 1,
-            name: expenditureCategoryName
-        };
-        
-        setExpenditureCategoryInfoList([...expenditureCategoryInfoList, newExpenditureCategory]);
-        closeModal();
-        setExpenditureCategoryName("");
+    const saveExpenditureCategory = async () => {
+        try {
+            const response = await categoryService.addExpenditureCategory(expenditureCategoryName);
+            
+            console.error(response);
+            const newCategory = {
+                id: response.categoryData.id,
+                name: response.categoryData.name
+            };
+            
+            setExpenditureCategoryInfoList([...expenditureCategoryInfoList, newCategory]);
+            
+            closeModal();
+            setExpenditureCategoryName("");
+        } catch (error) {
+            console.error("カテゴリー追加中にエラーが発生しました", error);
+            alert("カテゴリーの追加に失敗しました。");
+        }
     };
 
-    // 収入カテゴリーの更新
-    const updateIncomeCategory = () => {
-        // モックでデータを更新
-        const updatedCategories = incomeCategoryInfoList.map(category => {
-            if (category.id === incomeCategoryId) {
-                return {
-                    ...category,
-                    name: incomeCategoryName
-                };
-            }
-            return category;
-        });
-        
-        setIncomeCategoryInfoList(updatedCategories);
-        closeModal();
+    const updateIncomeCategory = async () => {
+        try {
+            const response = await categoryService.updateIncomeCategory(incomeCategoryId, incomeCategoryName);
+            
+            const updatedCategories = incomeCategoryInfoList.map(category => {
+                if (category.id === incomeCategoryId) {
+                    return {
+                        id: response.categoryData.id,
+                        name: response.categoryData.name
+                    };
+                }
+                return category;
+            });
+            
+            setIncomeCategoryInfoList(updatedCategories);
+            closeModal();
+        } catch (error) {
+            console.error("カテゴリー更新中にエラーが発生しました", error);
+            alert("カテゴリーの更新に失敗しました。");
+        }
     };
 
-    // 支出カテゴリーの更新
-    const updateExpenditureCategory = () => {
-        // モックでデータを更新
-        const updatedCategories = expenditureCategoryInfoList.map(category => {
-            if (category.id === expenditureCategoryId) {
-                return {
-                    ...category,
-                    name: expenditureCategoryName
-                };
-            }
-            return category;
-        });
-        
-        setExpenditureCategoryInfoList(updatedCategories);
-        closeModal();
+    const updateExpenditureCategory = async () => {
+        try {
+            const response = await categoryService.updateExpenditureCategory(expenditureCategoryId, expenditureCategoryName);
+            
+            const updatedCategories = expenditureCategoryInfoList.map(category => {
+                if (category.id === expenditureCategoryId) {
+                    return {
+                        id: response.categoryData.id,
+                        name: response.categoryData.name
+                    };
+                }
+                return category;
+            });
+            
+            setExpenditureCategoryInfoList(updatedCategories);
+            closeModal();
+        } catch (error) {
+            console.error("カテゴリー更新中にエラーが発生しました", error);
+            alert("カテゴリーの更新に失敗しました。");
+        }
     };
 
-    // 支出カテゴリーの削除
-    const deleteExpenditureCategory = (expenditureCategoryId) => {
+    const deleteExpenditureCategory = async (expenditureCategoryId) => {
         if (!window.confirm("この支出カテゴリーを削除します。本当によろしいですか？")) {
             return;
         }
 
-        // モックでデータを削除
-        const filteredCategories = expenditureCategoryInfoList.filter(
-            category => category.id !== expenditureCategoryId
-        );
-        setExpenditureCategoryInfoList(filteredCategories);
+        try {
+            await categoryService.deleteExpenditureCategory(expenditureCategoryId);
+            
+            const filteredCategories = expenditureCategoryInfoList.filter(
+                category => category.id !== expenditureCategoryId
+            );
+            setExpenditureCategoryInfoList(filteredCategories);
+        } catch (error) {
+            console.error("カテゴリー削除中にエラーが発生しました", error);
+            alert("カテゴリーの削除に失敗しました。");
+        }
     };
 
-    // 収入カテゴリーの削除
-    const deleteIncomeCategory = (incomeCategoryId) => {
+    const deleteIncomeCategory = async (incomeCategoryId) => {
         if (!window.confirm("この収入カテゴリーを削除します。本当によろしいですか？")) {
             return;
         }
 
-        // モックでデータを削除
-        const filteredCategories = incomeCategoryInfoList.filter(
-            category => category.id !== incomeCategoryId
-        );
-        setIncomeCategoryInfoList(filteredCategories);
+        try {
+            await categoryService.deleteIncomeCategory(incomeCategoryId);
+            
+            const filteredCategories = incomeCategoryInfoList.filter(
+                category => category.id !== incomeCategoryId
+            );
+            setIncomeCategoryInfoList(filteredCategories);
+        } catch (error) {
+            console.error("カテゴリー削除中にエラーが発生しました", error);
+            alert("カテゴリーの削除に失敗しました。");
+        }
     };
 
-    // ローディング中は何も表示しない
     if (loading) {
         return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
     }
 
-    // ユーザーがない場合は何も表示しない（リダイレクト処理中）
     if (!user) {
         return null;
     }
@@ -421,11 +462,12 @@ export default function Category() {
                                 >
                                     キャンセル
                                 </Button>
-                                <Button
+                                <PrimaryButton
+                                    className="ms-3"
                                     onClick={updateIncomeCategory}
                                 >
-                                    更新
-                                </Button>
+                                    収入カテゴリーを更新する
+                                </PrimaryButton>
                             </div>
                         </div>
                     </div>
@@ -453,18 +495,19 @@ export default function Category() {
                                 />
                             </div>
                             <div className="flex justify-end">
-                                <Button
+                                <SecondaryButton
                                     onClick={closeModal}
                                     variant="outline"
                                     className="mr-2"
                                 >
                                     キャンセル
-                                </Button>
-                                <Button
+                                </SecondaryButton>
+                                <PrimaryButton
+                                    className="ms-3"
                                     onClick={saveExpenditureCategory}
                                 >
-                                    登録
-                                </Button>
+                                    支出カテゴリーを追加する
+                                </PrimaryButton>
                             </div>
                         </div>
                     </div>
@@ -492,18 +535,19 @@ export default function Category() {
                                 />
                             </div>
                             <div className="flex justify-end">
-                                <Button
+                                <SecondaryButton
                                     onClick={closeModal}
                                     variant="outline"
                                     className="mr-2"
                                 >
                                     キャンセル
-                                </Button>
-                                <Button
+                                </SecondaryButton>
+                                <PrimaryButton
+                                    className="ms-3"
                                     onClick={updateExpenditureCategory}
                                 >
-                                    更新
-                                </Button>
+                                    支出カテゴリーを更新する
+                                </PrimaryButton>
                             </div>
                         </div>
                     </div>
