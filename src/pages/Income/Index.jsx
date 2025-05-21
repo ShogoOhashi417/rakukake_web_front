@@ -376,7 +376,8 @@ export default function Income() {
                                         ))}
                                     </thead>
                                     <tbody>
-                                        {table.getRowModel().rows.map((row) => (
+                                    {table.getRowModel().rows.length > 0 ? (
+                                        table.getRowModel().rows.map((row) => (
                                             <tr
                                                 key={row.id}
                                                 className={
@@ -415,7 +416,14 @@ export default function Income() {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ))
+                                    ) : (
+                                        <tr className="bg-white border-b">
+                                            <td colSpan={9} className="px-6 py-4 text-center font-medium text-gray-900">
+                                                データがありません。右上の ➕ から固定収入を登録してください。
+                                            </td>
+                                        </tr>
+                                    )}
                                     </tbody>
                                 </table>
                             </div>
