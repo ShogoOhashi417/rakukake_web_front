@@ -16,7 +16,7 @@ export interface ExpenditureDeleteData {
 export const expenditureService = {
   getExpenditureList: async () => {
     const response = await apiClient.get('/api/v1/expenditures');
-    return response.data.expenditure_info_list;
+    return response.data.expenditureDataList;
   },
   
   addExpenditure: async (data: ExpenditureData) => {
