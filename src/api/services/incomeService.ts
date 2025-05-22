@@ -30,7 +30,7 @@ export const incomeService = {
   },
   
   deleteIncome: async (data: IncomeDeleteData) => {
-    const response = await apiClient.post('/api/v1/incomes/delete', data);
+    const response = await apiClient.delete('/api/v1/incomes/delete', { data });
     return response.data;
   }
 };
