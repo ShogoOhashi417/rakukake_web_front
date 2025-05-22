@@ -3,7 +3,12 @@ import { useRef, useState, useEffect } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
+import ja from "date-fns/locale/ja";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import axios from "axios";
+import { categoryService } from "../../api/services/categoryService";
+import { expenditureService } from "../../api/services/expenditureService";
 
 export default function Expense({
     auth,
@@ -15,6 +20,8 @@ export default function Expense({
     
     useEffect(() => {
         document.title = "支出管理";
+        getInfo();
+        getCategories();
     }, []);
     
     const [expenditureInfoList, setExpenditureInfoList] = useState(
@@ -27,6 +34,20 @@ export default function Expense({
     const [expenditureAmount, setExpenditureAmount] = useState(0);
     const [sortField, setSortField] = useState(null);
     const [sortDirection, setSortDirection] = useState('asc');
+
+    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState(
+        expenditure_category_info_list || []
+    );
+
+    const getCategories = async () => {
+        try {
+            const categories = await categoryService.getExpenditureCategories();
+            setExpenditureCategoryInfoList(categories.expenditure_category_info_list);
+        } catch (error) {
+            console.error('カテゴリーデータの取得に失敗しました:', error);
+            setExpenditureCategoryInfoList([]);
+        }
+    };
 
     const sortData = (field) => {
         const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -44,7 +65,7 @@ export default function Expense({
 
     const getSortIcon = (field) => {
         if (sortField !== field) return null;
-        return sortDirection === 'asc' ? ' ↑' : ' ↓';
+        return sortDirection === 'asc' ? " ↑" : " ↓";
     };
 
     const changeExpenditureName = (event) => {
@@ -91,19 +112,15 @@ export default function Expense({
         updateExpenditureRef.current.classList.add("hidden");
     };
 
-    const getInfo = () => {
-        axios
-            .get("/api/expenditure/get")
-            .then((response) => {
-                setExpenditureInfoList(response.data.expenditure_info_list);
-            })
-            .catch((error) => {
-                console.error("データの取得に失敗しました:", error);
-            });
+    const getInfo = async () => {
+        try {
+            const expenditureList = await expenditureService.getExpenditureList();
+            setExpenditureInfoList(expenditureList);
+        } catch (error) {
+            console.error('支出データの取得に失敗しました:', error);
+            setExpenditureInfoList([]);
+        }
     };
-
-    const [expenditureCategoryInfoList] =
-        useState(expenditure_category_info_list || []);
 
     const [selectedDate, setSelectedDate] = useState(null);
 
@@ -129,26 +146,26 @@ export default function Expense({
         }
         
         const localCalendarDate = selectedDate.toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" });
-        axios
-            .post("/api/expenditure/add", {
-                expenditure_name: expenditureName,
-                expenditure_category_id: expenditureCategoryId,
-                expenditure_amount: expenditureAmount,
-                calendar_date: localCalendarDate,
-            })
-            .then(() => {
-                getInfo();
-                closeModal();
-            })
-            .catch((error) => {
-                console.error("支出の追加に失敗しました:", error);
-            });
-
-        setExpenditureName("");
-        setExpenditureCategoryId(0);
-        setExpenditureAmount(0);
-        setSelectedDate(null);
-        setCalendarDate({ startDate: null, endDate: null });
+        
+        expenditureService.addExpenditure({
+            expenditure_name: expenditureName,
+            expenditure_category_id: expenditureCategoryId,
+            expenditure_amount: expenditureAmount,
+            calendar_date: localCalendarDate,
+        })
+        .then(() => {
+            getInfo();
+            closeModal();
+            
+            setExpenditureName("");
+            setExpenditureCategoryId(0);
+            setExpenditureAmount(0);
+            setSelectedDate(null);
+            setCalendarDate({ startDate: null, endDate: null });
+        })
+        .catch((error) => {
+            console.error("支出の追加に失敗しました:", error);
+        });
     };
 
     const updateExpenditure = () => {
@@ -158,26 +175,26 @@ export default function Expense({
         }
         
         const localCalendarDate = selectedDate.toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" });
-        axios
-            .put(`/expenditure/update/${expenditureId}`, {
-                expenditure_name: expenditureName,
-                expenditure_category_id: expenditureCategoryId,
-                expenditure_amount: expenditureAmount,
-                calendar_date: localCalendarDate,
-            })
-            .then(() => {
-                getInfo();
-                closeModal();
-            })
-            .catch((error) => {
-                console.error("支出の更新に失敗しました:", error);
-            });
-
-        setExpenditureId(0);
-        setExpenditureName("");
-        setExpenditureCategoryId(0);
-        setExpenditureAmount(0);
-        setSelectedDate(null);
+        
+        expenditureService.updateExpenditure(expenditureId, {
+            expenditure_name: expenditureName,
+            expenditure_category_id: expenditureCategoryId,
+            expenditure_amount: expenditureAmount,
+            calendar_date: localCalendarDate,
+        })
+        .then(() => {
+            getInfo();
+            closeModal();
+            
+            setExpenditureId(0);
+            setExpenditureName("");
+            setExpenditureCategoryId(0);
+            setExpenditureAmount(0);
+            setSelectedDate(null);
+        })
+        .catch((error) => {
+            console.error("支出の更新に失敗しました:", error);
+        });
     };
 
     const deleteExpenditure = (expenditureId) => {
@@ -185,18 +202,17 @@ export default function Expense({
             return;
         }
 
-        axios
-            .post("/api/expenditure/delete", {
-                id: expenditureId,
-                expenditure_name: expenditureName,
-                expenditure_amount: expenditureAmount,
-            })
-            .then(() => {
-                getInfo();
-            })
-            .catch((error) => {
-                console.error("支出の削除に失敗しました:", error);
-            });
+        expenditureService.deleteExpenditure({
+            id: expenditureId,
+            expenditure_name: expenditureName,
+            expenditure_amount: expenditureAmount,
+        })
+        .then(() => {
+            getInfo();
+        })
+        .catch((error) => {
+            console.error("支出の削除に失敗しました:", error);
+        });
     };
 
     return (
@@ -237,11 +253,8 @@ export default function Expense({
                                                 </th>
                                                 <th className="w-10">
                                                     <div className="flex justify-center items-center">
-                                                        <button
-                                                            onClick={openAddModal}
-                                                            className="text-blue-500 hover:text-blue-700 text-xl font-bold"
-                                                        >
-                                                            ＋
+                                                        <button onClick={openAddModal}>
+                                                            <PlusCircle className="h-5 w-5" />
                                                         </button>
                                                     </div>
                                                 </th>
@@ -252,7 +265,7 @@ export default function Expense({
                                                 expenditureInfoList.map((item, index) => (
                                                     <tr
                                                         key={index}
-                                                        className="bg-white border-b hover:bg-gray-50"
+                                                        className={index % 2 === 0 ? "bg-white border-b" : "bg-gray-100 border-b"}
                                                     >
                                                         <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                                             {item.name}
@@ -263,10 +276,10 @@ export default function Expense({
                                                         <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                                             {item.category_name}
                                                         </td>
-                                                        <td>
+                                                        <td className="w-10 p-2 border">
                                                             <div className="flex justify-center items-center gap-1">
                                                                 <button
-                                                                    className="mx-auto text-blue-500 hover:text-blue-700 font-bold"
+                                                                    className="mr-2"
                                                                     onClick={() =>
                                                                         openUpdateModal(
                                                                             item.id,
@@ -277,17 +290,16 @@ export default function Expense({
                                                                         )
                                                                     }
                                                                 >
-                                                                    ✎
+                                                                    <Edit className="h-4 w-4" />
                                                                 </button>
                                                                 <button
-                                                                    className="mx-auto text-red-500 hover:text-red-700 font-bold"
                                                                     onClick={() =>
                                                                         deleteExpenditure(
                                                                             item.id
                                                                         )
                                                                     }
                                                                 >
-                                                                    ✕
+                                                                    <Trash2 className="h-4 w-4 text-red-500" />
                                                                 </button>
                                                             </div>
                                                         </td>
@@ -296,7 +308,7 @@ export default function Expense({
                                             ) : (
                                                 <tr className="bg-white border-b">
                                                     <td colSpan={4} className="px-6 py-4 text-center font-medium text-gray-900">
-                                                        データがありません。右上の ＋ から支出を登録してください。
+                                                        データがありません。右上の + から支出を登録してください。
                                                     </td>
                                                 </tr>
                                             )}
@@ -359,7 +371,7 @@ export default function Expense({
                                 value={expenditureName}
                                 onChange={changeExpenditureName}
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                                placeholder="例) 給料"
+                                placeholder="例) 食費"
                             />
                         </div>
                         <div className="col-span-2">
@@ -379,11 +391,9 @@ export default function Expense({
                                 <option value="">選択してください</option>
                                 {expenditureCategoryInfoList.map(
                                     (item, index) => (
-                                        <React.Fragment key={index}>
-                                            <option value={item.id}>
-                                                {item.name}
-                                            </option>
-                                        </React.Fragment>
+                                        <option key={index} value={item.id}>
+                                            {item.name}
+                                        </option>
                                     )
                                 )}
                             </select>
@@ -415,6 +425,8 @@ export default function Expense({
                                 selected={selectedDate}
                                 onChange={handleDateChange}
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                dateFormat="yyyy/MM/dd"
+                                locale={ja}
                             />
                         </div>
                     </div>
@@ -490,7 +502,7 @@ export default function Expense({
                                 value={expenditureName}
                                 onChange={changeExpenditureName}
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                                placeholder="例) 給料"
+                                placeholder="例) 食費"
                             />
                         </div>
                         <div className="col-span-2">
@@ -511,11 +523,9 @@ export default function Expense({
                                 <option value="">選択してください</option>
                                 {expenditureCategoryInfoList.map(
                                     (item, index) => (
-                                        <React.Fragment key={index}>
-                                            <option value={item.id}>
-                                                {item.name}
-                                            </option>
-                                        </React.Fragment>
+                                        <option key={index} value={item.id}>
+                                            {item.name}
+                                        </option>
                                     )
                                 )}
                             </select>
@@ -547,6 +557,8 @@ export default function Expense({
                                 selected={selectedDate}
                                 onChange={handleDateChange}
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                dateFormat="yyyy/MM/dd"
+                                locale={ja}
                             />
                         </div>
                     </div>
@@ -567,7 +579,7 @@ export default function Expense({
                                 clipRule="evenodd"
                             ></path>
                         </svg>
-                        支出を登録する
+                        支出を更新する
                     </button>
                 </div>
             </div>
