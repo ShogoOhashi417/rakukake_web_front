@@ -11,7 +11,8 @@ import {
     getCoreRowModel,
     getSortedRowModel,
 } from "@tanstack/react-table";
-import axios from "axios";
+import { incomeService } from "../../api/services/incomeService";
+import { categoryService } from "../../api/services/categoryService";
 
 function useAuth() {
     const [user, setUser] = useState(null);
@@ -37,20 +38,8 @@ function useAuth() {
     return { user, loading };
 }
 
-const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL,
-    withCredentials: false,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
-});
-
 export default function Income() {
     const { user, loading } = useAuth();
-
-    // todo temporary.apiから取得
-    const IncomeCategoryDataList = [];
 
     const [incomeId, setIncomeId] = useState(0);
     const [incomeName, setIncomeName] = useState('');
@@ -60,25 +49,29 @@ export default function Income() {
     // Initialize this above the useEffect to prevent race conditions
     const [incomeInfoList, setincomeInfoList] = useState([]);
 
-    const getInfo = () => {
-        api.get('/wasshoi')
-            .then(response => {
-                console.error(response);
-                if (response.data && response.data.income_info_list) {
-                    setincomeInfoList(response.data.income_info_list);
-                } else {
-                    console.error('Invalid response format:', response.data);
-                    setincomeInfoList([]);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching income data:', error);
-                setincomeInfoList([]);
-            });
+    const getInfo = async () => {
+        try {
+            const incomeList = await incomeService.getIncomeList();
+            setincomeInfoList(incomeList);
+        } catch (error) {
+            console.error('Error fetching income data:', error);
+            setincomeInfoList([]);
+        }
+    }
+    
+    const getCategories = async () => {
+        try {
+            const categories = await categoryService.getIncomeCategories();
+            setIncomeCategoryInfoList(categories.income_category_info_list);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            setIncomeCategoryInfoList([]);
+        }
     }
 
     useEffect(() => {
         getInfo();
+        getCategories();
     }, []);
 
     const [selectedDay, setSelectedDay] = useState(null);
@@ -108,10 +101,6 @@ export default function Income() {
         setIncomeCategoryId(incomeCategoryId);
         setIncomeAmount(incomeAmount);
         
-        // todo from rakukake
-        // setCalendarDate({ startDate : incomeCalendarDate, endDate:incomeCalendarDate });
-
-        // todo original
         if (incomeCalendarDate) {
             setSelectedDay(new Date(incomeCalendarDate));
         }
@@ -124,115 +113,65 @@ export default function Income() {
         updateIncomeRef.current.classList.add('hidden');
     }
 
-    const addIncome = () => {
-        // todo from rakukake
-        api.post('/income/add', {
-            'income_name': incomeName,
-            'income_category_id' : incomeCategoryId,
-            'income_amount': incomeAmount,
-            // 'calendar_date' : calendarDate.startDate
-        })
-        .then(response => {
+    const addIncome = async () => {
+        try {
+            await incomeService.addIncome({
+                'income_name': incomeName,
+                'income_category_id': incomeCategoryId,
+                'income_amount': incomeAmount,
+                'calendar_date': selectedDay ? format(selectedDay, 'yyyy-MM-dd') : null
+            });
             getInfo();
             closeModal();
-        })
-        .catch(error => {
+            
+            setIncomeName('');
+            setIncomeCategoryId(0);
+            setIncomeAmount(0);
+            setSelectedDay(null);
+        } catch (error) {
             console.error('Error adding income:', error);
-        });
-
-        setIncomeName('');
-        setIncomeCategoryId(0);
-        setIncomeAmount(0);
-
-        // const newIncome = {
-        //     id: incomeInfoList.length + 1, 
-        //     name: incomeName,
-        //     amount: incomeAmount,
-        //     category_id: incomeCategoryId,
-        //     category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
-        //     date: selectedDay ? formatDateString(selectedDay) : null
-        // };
-        
-        // setIncomeInfoList([...incomeInfoList, newIncome]);
-        closeModal();
-        
-        // フォームをリセット
-        setIncomeName('');
-        setIncomeCategoryId(0);
-        setIncomeAmount(0);
-        setSelectedDay(null);
+        }
     }
 
-    const updateIncome = () => {
-        // todo from rakukake
-        // const localDate = new Date(calendarDate.startDate).toLocaleString('sv-SE', { timeZone: 'Asia/Tokyo' });
-        api.put(`/income/update/${incomeId}`, {
-            'income_name': incomeName,
-            'income_category_id' : incomeCategoryId,
-            'income_amount': incomeAmount,
-            // 'calendar_date' : localDate
-        })
-        .then(response => {
+    const updateIncome = async () => {
+        try {
+            await incomeService.updateIncome(incomeId, {
+                'income_name': incomeName,
+                'income_category_id': incomeCategoryId,
+                'income_amount': incomeAmount,
+                'calendar_date': selectedDay ? format(selectedDay, 'yyyy-MM-dd') : null
+            });
             getInfo();
             closeModal();
-        })
-        .catch(error => {
+            
+            setIncomeId(0);
+            setIncomeName('');
+            setIncomeCategoryId(0);
+            setIncomeAmount(0);
+            setSelectedDay(null);
+        } catch (error) {
             console.error('Error updating income:', error);
-        });
-
-        setIncomeId(0);
-        setIncomeName('');
-        setIncomeCategoryId(0);
-        setIncomeAmount(0);
-        // const updatedIncomes = incomeInfoList.map(income => {
-        //     if (income.id === incomeId) {
-        //         return {
-        //             ...income,
-        //             name: incomeName,
-        //             amount: incomeAmount,
-        //             category_id: parseInt(incomeCategoryId),
-        //             category_name: incomeCategoryInfoList.find(cat => cat.id === parseInt(incomeCategoryId))?.name || "不明",
-        //             date: selectedDay ? formatDateString(selectedDay) : null
-        //         };
-        //     }
-        //     return income;
-        // });
-        
-        // setIncomeInfoList(updatedIncomes);
-        // closeModal();
-        
-        // // フォームをリセット
-        // setIncomeId(0);
-        // setIncomeName('');
-        // setIncomeCategoryId(0);
-        // setIncomeAmount(0);
-        // setSelectedDay(null);
+        }
     }
 
-    const deleteIncome = (incomeId) => {
+    const deleteIncome = async (incomeId) => {
         if (!window.confirm('本当に収入を削除しますか？')) {
             return;
         }
 
-        // todo from rakukake
-        api.post('/income/delete', {
-            'id' : incomeId,
-            'income_name' : incomeName,
-            'income_amount': incomeAmount,
-        })
-        .then(response => {
+        try {
+            await incomeService.deleteIncome({
+                'id': incomeId,
+                'income_name': incomeName,
+                'income_amount': incomeAmount,
+            });
             getInfo();
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error deleting income:', error);
-        });
-        
-        // モックでデータを削除
-        // const filteredIncomes = incomeInfoList.filter(income => income.id !== incomeId);
-        // setIncomeInfoList(filteredIncomes);
+        }
     }
 
-    const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState(IncomeCategoryDataList);
+    const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([]);
 
     const [calendarDate, setCalendarDate] = useState({ 
         startDate: null, 
@@ -278,53 +217,6 @@ export default function Income() {
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
     });
-
-    
-    // // 日付変換関数を追加
-    // const formatDateString = (date) => {
-    //     if (!date) return null;
-    //     return format(date, 'yyyy-MM-dd');
-    // };
-
-    // const columnHelper = createColumnHelper();
-
-    // const data = React.useMemo(
-    //     () => incomeInfoList,
-    //     [incomeInfoList]
-    // );
-
-    // const columns = React.useMemo(
-    //     () => [
-    //     columnHelper.accessor("name", {
-    //         header: "収入名",
-    //         cell: (info) => info.getValue(),
-    //     }),
-    //     columnHelper.accessor("amount", {
-    //         header: "金額",
-    //         cell: (info) => info.getValue().toLocaleString() + "円",
-    //         sortingFn: "basic",
-    //     }),
-    //     columnHelper.accessor("category_name", {
-    //         header: "カテゴリー",
-    //         cell: (info) => info.getValue(),
-    //         sortingFn: "basic",
-    //     }),
-    //     ],
-    //     []
-    // );
-
-    // const [sorting, setSorting] = useState([]);
-
-    // const table = useReactTable({
-    //     data,
-    //     columns,
-    //     state: {
-    //         sorting,
-    //     },
-    //     onSortingChange: setSorting,
-    //     getCoreRowModel: getCoreRowModel(),
-    //     getSortedRowModel: getSortedRowModel(),
-    // });
 
     // ローディング中は何も表示しない
     if (loading) {
@@ -432,105 +324,250 @@ export default function Income() {
                 </div>
             </div>
 
-            {/* 収入追加モーダル */}
-            <div ref={addIncomeRef} id="add_income" tabIndex="-1" aria-hidden="true" className="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                <div className="relative w-full max-w-md max-h-full">
-                    <div className="relative bg-white rounded-lg shadow">
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                収入追加
-                            </h3>
-                            <button type="button" onClick={closeModal} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                                <X className="w-4 h-4" />
-                                <span className="sr-only">閉じる</span>
-                            </button>
+            <div
+                ref={addIncomeRef}
+                className="fixed top-0 left-0 w-full h-full flex items-center justify-center hidden"
+            >
+                <div
+                    onClick={closeModal}
+                    className="absolute w-full h-full bg-gray-900 opacity-50"
+                ></div>
+                <div className="z-10 bg-white p-6 rounded shadow-lg w-1/2">
+                    <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            収入を追加する
+                        </h3>
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+                            data-modal-toggle="addTaskModal"
+                        >
+                            <svg
+                                className="w-3 h-3"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                            >
+                                <path
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="grid gap-4 mb-4 grid-cols-2">
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                収入名
+                            </label>
+                            <input
+                                type="text"
+                                value={incomeName}
+                                onChange={changeIncomeName}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                placeholder="例) 給料"
+                            />
                         </div>
-                        <div className="p-4 md:p-5">
-                            <form className="space-y-4">
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">収入名</label>
-                                    <input type="text" value={incomeName} onChange={changeIncomeName} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="収入名" required />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">カテゴリー</label>
-                                    <select onChange={changeIncomeCategoryId} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        <option value="">選択してください</option>
-                                        {incomeCategoryInfoList.map((category, index) => (
-                                            <option key={index} value={category.id}>{category.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">金額</label>
-                                    <input type="number" value={incomeAmount} onChange={changeIncomeAmount} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="金額" required />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">日付</label>
-                                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-2">
-                                        <DatePicker
-                                            selected={selectedDay}
-                                            onChange={(date) => setSelectedDay(date)}
-                                            dateFormat="yyyy/MM/dd"
-                                            className="w-full bg-transparent"
-                                            locale={ja}
-                                        />
-                                    </div>
-                                </div>
-                                <button type="button" onClick={addIncome} className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">追加</button>
-                            </form>
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                カテゴリー
+                            </label>
+
+                            <select
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                onChange={changeIncomeCategoryId}
+                            >
+                                <option value="">選択してください</option>
+                                {incomeCategoryInfoList.map((category, index) => (
+                                    <option key={index} value={category.id}>{category.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                金額
+                            </label>
+                            <input
+                                type="number"
+                                value={incomeAmount}
+                                onChange={changeIncomeAmount}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                min="1"
+                            />
+                        </div>
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                日時
+                            </label>
+                            <DatePicker
+                                selected={selectedDay}
+                                onChange={(date) => setSelectedDay(date)}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                dateFormat="yyyy/MM/dd"
+                                locale={ja}
+                            />
                         </div>
                     </div>
+                    <button
+                        onClick={addIncome}
+                        type="submit"
+                        className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                    >
+                        <svg
+                            className="me-1 -ms-1 w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                clipRule="evenodd"
+                            ></path>
+                        </svg>
+                        収入を追加する
+                    </button>
                 </div>
             </div>
 
-            {/* 収入更新モーダル */}
-            <div ref={updateIncomeRef} id="update_income" tabIndex="-1" aria-hidden="true" className="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                <div className="relative w-full max-w-md max-h-full">
-                    <div className="relative bg-white rounded-lg shadow">
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                                収入更新
-                            </h3>
-                            <button type="button" onClick={closeModal} className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
-                                <X className="w-4 h-4" />
-                                <span className="sr-only">閉じる</span>
-                            </button>
+            <div
+                ref={updateIncomeRef}
+                className="fixed top-0 left-0 w-full h-full flex items-center justify-center hidden"
+            >
+                <div
+                    onClick={closeModal}
+                    className="absolute w-full h-full bg-gray-900 opacity-50"
+                ></div>
+                <div className="z-10 bg-white p-6 rounded shadow-lg w-1/2">
+                    <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            収入を編集する
+                        </h3>
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+                            data-modal-toggle="addTaskModal"
+                        >
+                            <svg
+                                className="w-3 h-3"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                            >
+                                <path
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="grid gap-4 mb-4 grid-cols-2">
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                収入名
+                            </label>
+                            <input
+                                type="text"
+                                value={incomeName}
+                                onChange={changeIncomeName}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                placeholder="例) 給料"
+                            />
                         </div>
-                        <div className="p-4 md:p-5">
-                            <form className="space-y-4">
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">収入名</label>
-                                    <input type="text" value={incomeName} onChange={changeIncomeName} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="収入名" required />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">カテゴリー</label>
-                                    <select value={incomeCategoryId} onChange={changeIncomeCategoryId} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                        <option value="">選択してください</option>
-                                        {incomeCategoryInfoList.map((category, index) => (
-                                            <option key={index} value={category.id}>{category.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">金額</label>
-                                    <input type="number" value={incomeAmount} onChange={changeIncomeAmount} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="金額" required />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-sm font-medium text-gray-900">日付</label>
-                                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-2">
-                                        <DatePicker
-                                            selected={selectedDay}
-                                            onChange={(date) => setSelectedDay(date)}
-                                            dateFormat="yyyy/MM/dd"
-                                            className="w-full bg-transparent"
-                                            locale={ja}
-                                        />
-                                    </div>
-                                </div>
-                                <button type="button" onClick={updateIncome} className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">更新</button>
-                            </form>
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                カテゴリー
+                            </label>
+
+                            <select
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                value={incomeCategoryId}
+                                onChange={changeIncomeCategoryId}
+                            >
+                                <option value="">選択してください</option>
+                                {incomeCategoryInfoList.map((category, index) => (
+                                    <option key={index} value={category.id}>{category.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                金額
+                            </label>
+                            <input
+                                type="number"
+                                value={incomeAmount}
+                                onChange={changeIncomeAmount}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                min="1"
+                            />
+                        </div>
+                        <div className="col-span-2">
+                            <label
+                                htmlFor="name"
+                                className="block mb-2 text-sm font-medium text-gray-900"
+                            >
+                                日時
+                            </label>
+                            <DatePicker
+                                selected={selectedDay}
+                                onChange={(date) => setSelectedDay(date)}
+                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+                                dateFormat="yyyy/MM/dd"
+                                locale={ja}
+                            />
                         </div>
                     </div>
+                    <button
+                        onClick={updateIncome}
+                        type="submit"
+                        className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                    >
+                        <svg
+                            className="me-1 -ms-1 w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                clipRule="evenodd"
+                            ></path>
+                        </svg>
+                        収入を登録する
+                    </button>
                 </div>
             </div>
         </AuthenticatedLayout>
