@@ -1,5 +1,5 @@
 import React from "react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -13,6 +13,7 @@ import {
     getCoreRowModel,
     getSortedRowModel,
 } from "@tanstack/react-table";
+import { categoryService } from "../../api/services/categoryService";
 
 // DatePickerの幅を100%にするためのスタイル
 const globalStyles = `
@@ -89,6 +90,21 @@ export default function Fixed({
     const [paymentDay, setPaymentDay] = useState(1);
     const [paymentMonth, setPaymentMonth] = useState(1);
 
+    useEffect(() => {
+        getInfo();
+        getCategories();
+    }, []);
+
+    const getCategories = async () => {
+        try {
+            const categories = await categoryService.getIncomeCategories();
+            setCategoryInfoList(categories.income_category_info_list);
+        } catch (error) {
+            console.error('カテゴリ情報の取得に失敗しました', error);
+            setCategoryInfoList([]);
+        }
+    }
+
     const changeIncomeName = (event) => {
         setIncomeName(event.target.value);
     };
@@ -152,7 +168,6 @@ export default function Fixed({
             .get("/api/fixed-income/get")
             .then((response) => {
                 setIncomeInfoList(response.data.fixedIncomes);
-                setCategoryInfoList(response.data.incomeCategoryInfoList);
             })
             .catch((error) => {
                 console.error("データの取得に失敗しました", error);
