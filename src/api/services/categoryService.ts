@@ -25,23 +25,23 @@ export const categoryService = {
     await apiClient.delete(`/api/v1/income-categories/${id}`);
   },
   
-  getExpenditureCategories: async (): Promise<Category[]> => {
-    const response = await apiClient.get<Category[]>('/api/v1/expenditure-categories');
+  getExpenseCategories: async (): Promise<Category[]> => {
+    const response = await apiClient.get<Category[]>('/api/v1/expense-categories/get');
     return response.data;
   },
   
-  addExpenditureCategory: async (name: string): Promise<Category> => {
-    const response = await apiClient.post<Category>('/api/v1/expenditure-categories', { name });
+  addExpenseCategory: async (name: string): Promise<Category> => {
+    const response = await apiClient.post<Category>('/api/v1/expense-categories', { name });
     return response.data;
   },
   
-  updateExpenditureCategory: async (id: number, name: string): Promise<Category> => {
-    const response = await apiClient.put<Category>(`/api/v1/expenditure-categories/${id}`, { name });
+  updateExpenseCategory: async (id: number, name: string): Promise<Category> => {
+    const response = await apiClient.put<Category>(`/api/v1/expense-categories/${id}`, { name });
     return response.data;
   },
   
-  deleteExpenditureCategory: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/v1/expenditure-categories/${id}`);
+  deleteExpenseCategory: async (id: number): Promise<void> => {
+    await apiClient.delete(`/api/v1/expense-categories/${id}`);
   }
 };
 

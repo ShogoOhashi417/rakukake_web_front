@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRef } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import DatePicker from "react-datepicker";
@@ -11,7 +11,8 @@ import {
     getCoreRowModel,
     getSortedRowModel,
 } from "@tanstack/react-table";
-import axios from "axios";
+import { categoryService } from "../../api/services/categoryService";
+import { fixedExpenseService } from "../../api/services/fixedExpenseService";
 
 const globalStyles = `
 	.react-datepicker-wrapper {
@@ -25,6 +26,9 @@ export default function FixedExpense({
 }) {
     const [expenditureInfoList, setExpenditureInfoList] = useState(
         expenditure_info_list
+    );
+    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState(
+        expenditure_category_info_list
     );
 
     const [expenditureId, setExpenditureId] = useState(0);
@@ -90,16 +94,32 @@ export default function FixedExpense({
         updateExpenditureRef.current.classList.add("hidden");
     };
 
-    const getInfo = () => {
-        axios
-            .get("/api/expenditure/fixed/get")
-            .then((response) => {
-                setExpenditureInfoList(response.data.expenditure_info_list);
-            })
-            .catch((_error) => {});
+    useEffect(() => {
+        getInfo();
+        getCategories();
+    }, []);
+
+    const getCategories = async () => {
+        try {
+            const categories = await categoryService.getExpenseCategories();
+            setExpenditureCategoryInfoList(categories.expenditure_category_info_list);
+        } catch (error) {
+            console.error('カテゴリ情報の取得に失敗しました', error);
+            setExpenditureCategoryInfoList([]);
+        }
+    }
+
+    const getInfo = async () => {
+        try {
+            const fixedExpenses = await fixedExpenseService.getFixedExpenses();
+            setExpenditureInfoList(fixedExpenses);
+        } catch (error) {
+            console.error("データの取得に失敗しました", error);
+            setExpenditureInfoList([]);
+        }
     };
 
-    const addExpenditure = () => {
+    const addExpenditure = async () => {
         const localPeriodStartDate = periodStartDate
             ? format(periodStartDate, "yyyy-MM-01")
             : null;
@@ -112,8 +132,8 @@ export default function FixedExpense({
               )
             : null;
 
-        axios
-            .post("/api/expenditure/fixed/add", {
+        try {
+            await fixedExpenseService.createFixedExpense({
                 name: expenditureName,
                 category_id: expenditureCategoryId,
                 amount: expenditureAmount,
@@ -122,11 +142,12 @@ export default function FixedExpense({
                 payment_month: cycleUnit == 2 ? paymentMonth : null,
                 start_date: localPeriodStartDate,
                 end_date: localPeriodEndDate,
-            })
-            .then((_response) => {
-                getInfo();
-                closeModal();
             });
+            getInfo();
+            closeModal();
+        } catch (error) {
+            console.error("支出の追加に失敗しました", error);
+        }
 
         setExpenditureName("");
         setExpenditureCategoryId(0);
@@ -135,7 +156,7 @@ export default function FixedExpense({
         setPeriodEndDate(null);
     };
 
-    const updateExpenditure = () => {
+    const updateExpenditure = async () => {
         const localPeriodStartDate = periodStartDate
             ? format(
                   periodStartDate,
@@ -153,20 +174,22 @@ export default function FixedExpense({
               )
             : null;
 
-        axios
-            .put(`/expenditure/fixed/update/${expenditureId}`, {
-                expenditure_name: expenditureName,
-                expenditure_category_id: expenditureCategoryId,
-                expenditure_amount: expenditureAmount,
-                period_start_date: localPeriodStartDate,
-                period_end_date: localPeriodEndDate,
+        try {
+            await fixedExpenseService.updateFixedExpense(expenditureId, {
+                name: expenditureName,
+                category_id: expenditureCategoryId,
+                amount: expenditureAmount,
+                cycle_unit: cycleUnit,
                 payment_day: paymentDay,
                 payment_month: cycleUnit == 2 ? paymentMonth : null,
-            })
-            .then((_response) => {
-                getInfo();
-                closeModal();
+                start_date: localPeriodStartDate,
+                end_date: localPeriodEndDate,
             });
+            getInfo();
+            closeModal();
+        } catch (error) {
+            console.error("支出の更新に失敗しました", error);
+        }
 
         setExpenditureId(0);
         setExpenditureName("");
@@ -176,17 +199,18 @@ export default function FixedExpense({
         setPeriodEndDate(null);
     };
 
-    const deleteExpenditure = (expenditureId) => {
+    const deleteExpenditure = async (expenditureId) => {
         if (!window.confirm("本当にこの固定支出を削除しますか？")) {
             return;
         }
 
-        axios.delete(`/expenditure/fixed/${expenditureId}`).then((_response) => {
+        try {
+            await fixedExpenseService.deleteFixedExpense(expenditureId);
             getInfo();
-        });
+        } catch (error) {
+            console.error("支出の削除に失敗しました", error);
+        }
     };
-
-    const [expenditureCategoryInfoList] = useState(expenditure_category_info_list);
 
     const columnHelper = createColumnHelper();
 
@@ -405,9 +429,7 @@ export default function FixedExpense({
                                                                         title="削除"
                                                                         onClick={() =>
                                                                             deleteExpenditure(
-                                                                                row
-                                                                                    .original
-                                                                                    .expenditure_id
+                                                                                row.original.expenditure_id
                                                                             )
                                                                         }
                                                                     >
