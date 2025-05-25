@@ -5,7 +5,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
-import axios from "axios";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import {
     createColumnHelper,
@@ -14,6 +13,7 @@ import {
     getSortedRowModel,
 } from "@tanstack/react-table";
 import { categoryService } from "../../api/services/categoryService";
+import { fixedIncomeService } from "../../api/services/fixedIncomeService";
 
 // DatePickerの幅を100%にするためのスタイル
 const globalStyles = `
@@ -163,18 +163,17 @@ export default function Fixed({
         updateIncomeRef.current.classList.add("hidden");
     };
 
-    const getInfo = () => {
-        axios
-            .get("/api/fixed-income/get")
-            .then((response) => {
-                setIncomeInfoList(response.data.fixedIncomes);
-            })
-            .catch((error) => {
-                console.error("データの取得に失敗しました", error);
-            });
+    const getInfo = async () => {
+        try {
+            const fixedIncomes = await fixedIncomeService.getFixedIncomes();
+            setIncomeInfoList(fixedIncomes);
+        } catch (error) {
+            console.error("データの取得に失敗しました", error);
+            setIncomeInfoList([]);
+        }
     };
 
-    const addIncome = () => {
+    const addIncome = async () => {
         const today = new Date();
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         const localStartDate = periodStartDate || firstDayOfMonth;
@@ -192,8 +191,8 @@ export default function Fixed({
               )
             : null;
 
-        axios
-            .post("/api/fixed-income/create", {
+        try {
+            await fixedIncomeService.createFixedIncome({
                 income_name: incomeName,
                 income_category_id: incomeCategoryId,
                 income_amount: incomeAmount,
@@ -202,14 +201,12 @@ export default function Fixed({
                 payment_month: cycleUnit == 2 ? paymentMonth : null,
                 period_start_date: localPeriodStartDate,
                 period_end_date: localPeriodEndDate,
-            })
-            .then(() => {
-                getInfo();
-                closeModal();
-            })
-            .catch(error => {
-                console.error("収入の追加に失敗しました", error);
             });
+            getInfo();
+            closeModal();
+        } catch (error) {
+            console.error("収入の追加に失敗しました", error);
+        }
 
         setIncomeName("");
         setIncomeCategoryId(0);
@@ -218,7 +215,7 @@ export default function Fixed({
         setPeriodEndDate(null);
     };
 
-    const updateIncome = () => {
+    const updateIncome = async () => {
         const localPeriodStartDate = periodStartDate
             ? format(
                   periodStartDate,
@@ -236,8 +233,8 @@ export default function Fixed({
               )
             : null;
 
-        axios
-            .put(`/fixed-income/update/${incomeId}`, {
+        try {
+            await fixedIncomeService.updateFixedIncome(incomeId, {
                 income_name: incomeName,
                 income_category_id: incomeCategoryId,
                 income_amount: incomeAmount,
@@ -246,14 +243,12 @@ export default function Fixed({
                 payment_month: cycleUnit == 2 ? paymentMonth : null,
                 period_start_date: localPeriodStartDate,
                 period_end_date: localPeriodEndDate,
-            })
-            .then(() => {
-                getInfo();
-                closeModal();
-            })
-            .catch(error => {
-                console.error("収入の更新に失敗しました", error);
             });
+            getInfo();
+            closeModal();
+        } catch (error) {
+            console.error("収入の更新に失敗しました", error);
+        }
 
         setIncomeId(0);
         setIncomeName("");
@@ -263,18 +258,17 @@ export default function Fixed({
         setPeriodEndDate(null);
     };
 
-    const deleteIncome = (incomeId) => {
+    const deleteIncome = async (incomeId) => {
         if (!window.confirm("本当にこの固定収入を削除しますか？")) {
             return;
         }
 
-        axios.delete(`/fixed-income/${incomeId}`)
-            .then(() => {
-                getInfo();
-            })
-            .catch(error => {
-                console.error("収入の削除に失敗しました", error);
-            });
+        try {
+            await fixedIncomeService.deleteFixedIncome(incomeId);
+            getInfo();
+        } catch (error) {
+            console.error("収入の削除に失敗しました", error);
+        }
     };
 
     const columnHelper = createColumnHelper();
