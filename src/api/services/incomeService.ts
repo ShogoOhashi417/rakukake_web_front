@@ -15,7 +15,7 @@ export interface IncomeDeleteData {
 
 export const incomeService = {
   getIncomeList: async () => {
-    const response = await apiClient.get('/api/v1/incomes');
+    const response = await apiClient.get('/api/v1/incomes/get');
     return response.data.income_info_list;
   },
   
