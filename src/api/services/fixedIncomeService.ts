@@ -13,12 +13,12 @@ export interface FixedIncomeData {
 
 export const fixedIncomeService = {
   getFixedIncomes: async () => {
-    const response = await apiClient.get('/api/v1/fixed-incomes/get');
+        const response = await apiClient.get('/api/v1/fixed-incomes/get');
     return response.data.fixedIncomes;
   },
   
   createFixedIncome: async (data: FixedIncomeData) => {
-    const response = await apiClient.post('/api/v1/fixed-incomes/create', data);
+    const response = await apiClient.post('/api/v1/fixed-incomes/add', data);
     return response.data;
   },
   
