@@ -36,7 +36,7 @@ export default function Category() {
             try {
                 const [incomeCategories, expenditureCategories] = await Promise.all([
                     categoryService.getIncomeCategories(),
-                    categoryService.getExpenditureCategories()
+                    categoryService.getExpenseCategories()
                 ]);
                 
                 let mappedIncomeCategories = [];
@@ -182,7 +182,7 @@ export default function Category() {
 
     const updateExpenditureCategory = async () => {
         try {
-            const response = await categoryService.updateExpenditureCategory(expenditureCategoryId, expenditureCategoryName);
+            const response = await categoryService.updateExpenseCategory(expenditureCategoryId, expenditureCategoryName);
             
             const updatedCategories = expenditureCategoryInfoList.map(category => {
                 if (category.id === expenditureCategoryId) {
@@ -208,7 +208,7 @@ export default function Category() {
         }
 
         try {
-            await categoryService.deleteExpenditureCategory(expenditureCategoryId);
+            await categoryService.deleteExpenseCategory(expenditureCategoryId);
             
             const filteredCategories = expenditureCategoryInfoList.filter(
                 category => category.id !== expenditureCategoryId

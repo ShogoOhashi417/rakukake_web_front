@@ -41,7 +41,7 @@ export default function Expense({
 
     const getCategories = async () => {
         try {
-            const categories = await categoryService.getExpenditureCategories();
+            const categories = await categoryService.getExpenseCategories();
             setExpenditureCategoryInfoList(categories.expenditure_category_info_list);
         } catch (error) {
             console.error('カテゴリーデータの取得に失敗しました:', error);
