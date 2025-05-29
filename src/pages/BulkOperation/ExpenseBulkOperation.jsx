@@ -13,6 +13,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import ja from 'date-fns/locale/ja';
 
+
 export default function BulkOperation() {
     const [activeTab, setActiveTab] = useState("upload");
     const [dateRange, setDateRange] = useState(() => {
