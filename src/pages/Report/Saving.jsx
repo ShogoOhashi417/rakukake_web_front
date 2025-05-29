@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import axios from "axios";
+import { reportService } from "../../api/services/reportService";
 
 export default function Saving({ auth = { user: {} }, incomeDataList = { category_to_amount_list: {} }, expenseDataList = { category_to_amount_list: {} } }) {
     const getMonth = (year, month, period) => {
@@ -95,15 +95,13 @@ export default function Saving({ auth = { user: {} }, incomeDataList = { categor
 
     const fetchChart = async () => {
         try {
-            const response = await axios.get('/api/report/saving/get', {
-                params: {
-                    start_date: dateList[0] + '-01',
-                    end_date: getMonthEndDate(dateList[dateList.length - 1])
-                }
+            const response = await reportService.getSavingReport({
+                start_date: dateList[0] + '-01',
+                end_date: getMonthEndDate(dateList[dateList.length - 1])
             });
 
-            setIncomeInfoList(response.data.incomeDataList?.category_to_amount_list || {});
-            setExpenditureInfoList(response.data.expenseDataList?.category_to_amount_list || {});
+            setIncomeInfoList(response.incomeDataList.category_to_amount_list || {});
+            setExpenditureInfoList(response.expenseDataList.category_to_amount_list || {});
         } catch (error) {
             console.error('Failed to fetch chart data:', error);
             setIncomeInfoList({});
