@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import YearSelectBox from "../../components/YearSelectBox";
-import axios from "axios";
+import { reportService } from "../../api/services/reportService";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 
 export default function ExpenseReport({ auth = { user: { name: '' } }, expenseInfoList = { category_to_amount_list: {} } }) {
@@ -65,13 +65,12 @@ export default function ExpenseReport({ auth = { user: { name: '' } }, expenseIn
         const endDate = `${dates[dates.length - 1]}-${String(lastDay).padStart(2, '0')}`;
 
         try {
-            const response = await axios.get('/api/report/expense/get', {
-                params: {
-                    start_date: startDate,
-                    end_date: endDate
-                }
+            const response = await reportService.getExpenseReport({
+                start_date: startDate,
+                end_date: endDate
             });
-            setExpenditureInfoList(response.data.category_to_amount_list || {});
+            
+            setExpenditureInfoList(response.expenseInfoList.category_to_amount_list || {});
         } catch (error) {
             console.error('データの取得に失敗しました:', error);
             setExpenditureInfoList({});
@@ -164,6 +163,13 @@ export default function ExpenseReport({ auth = { user: { name: '' } }, expenseIn
     };
 
     const [expenditureInfoList, setExpenditureInfoList] = useState(expenseInfoList?.category_to_amount_list || {});
+
+    // 初期ロード時にデータを取得
+    useEffect(() => {
+        if (dateList.length > 0) {
+            fetchDataWithDates(dateList);
+        }
+    }, []);
 
     useEffect(() => {
         const totalDataList = [];
