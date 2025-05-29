@@ -7,11 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-// 本番環境ではaxiosが必要になりますが、
-// モックデータを使用するため、現時点では使用しません
-import axios from "axios";
+import { expenditureService } from "../../api/services/expenditureService";
+import { categoryService } from "../../api/services/categoryService";
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import ja from 'date-fns/locale/ja';
 
 export default function BulkOperation() {
     const [activeTab, setActiveTab] = useState("upload");
@@ -26,10 +26,10 @@ export default function BulkOperation() {
     const [isDownloading, setIsDownloading] = useState(false);
 
     const exportSampleCsv = () => {
-        axios.get("/api/expenditure/export", {}).then((response) => {
+        expenditureService.exportSampleCsv().then((data) => {
             const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
 
-            const rows = [response.data.header, ...response.data.data];
+            const rows = [data.header, ...data.data];
 
             const csvContent = rows
                 .map((row) =>
@@ -59,17 +59,10 @@ export default function BulkOperation() {
 
     const downloadExpenditureCsv = () => {
         setIsDownloading(true);
-        axios
-            .get("/api/expenditure/export_data", {
-                params: {
-                    start_date: dateRange.startDate,
-                    end_date: dateRange.endDate,
-                },
-                responseType: "blob",
-            })
-            .then((response) => {
+        expenditureService.exportExpenditureCsv(dateRange.startDate, dateRange.endDate)
+            .then((data) => {
                 const url = window.URL.createObjectURL(
-                    new Blob([response.data])
+                    new Blob([data])
                 );
                 const link = document.createElement("a");
                 link.href = url;
@@ -107,32 +100,25 @@ export default function BulkOperation() {
 
     const uploadCsv = () => {
         const fileInput = document.querySelector('input[name="csv"]');
-        const formData = new FormData();
-
+        
         if (fileInput.files.length > 0) {
-            formData.append("csv", fileInput.files[0]);
+            const file = fileInput.files[0];
+
+            expenditureService.importCsv(file)
+                .then((response) => {
+                    getExpenditureCategory();
+                    setCsvPreviewList(JSON.parse(response.uploadDataList));
+                    openModal();
+                });
         }
-        axios
-            .post("/api/expenditure/import_csv", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            })
-            .then((response) => {
-                getExpenditureCategory();
-                setCsvPreviewList(JSON.parse(response.data.uploadDataList));
-                openModal();
-            });
     };
 
     const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] =
         useState([]);
 
     const getExpenditureCategory = async () => {
-        const response = await axios.get("/api/expenditure_category/get");
-        setExpenditureCategoryInfoList(
-            response.data.expenditure_category_info_list
-        );
+        const categories = await categoryService.getExpenseCategories();
+        setExpenditureCategoryInfoList(categories.expenditure_category_info_list);
     };
 
     const deleteExpenditureCategory = (itemIndex) => {
@@ -146,41 +132,42 @@ export default function BulkOperation() {
     };
 
     const saveCategoryMap = () => {
-        const formData = new FormData();
-
         const table = document.querySelector("table");
         const rows = table.querySelectorAll("tbody tr");
-
-        rows.forEach((row, index) => {
+        
+        const items = Array.from(rows).map(row => {
             const id = row.querySelector('input[name="id"]')?.value || '';
-
-            const itemName = row.querySelector(
-                'input[name="category_name"]'
-            ).value;
-            const categorySelect = row.querySelector(
-                'select[name="category_id"]'
-            );
-            const selectedCategory =
-                categorySelect.options[categorySelect.selectedIndex].value;
+            const itemName = row.querySelector('input[name="category_name"]').value;
+            const categorySelect = row.querySelector('select[name="category_id"]');
+            const selectedCategory = categorySelect.options[categorySelect.selectedIndex].value;
             const amount = row.querySelector('input[name="amount"]').value;
-            const calendarDate = row.querySelector(
-                'input[name="calendar_date"]'
-            ).value;
-
-            formData.append(`items[${index}][id]`, id);
-            formData.append(`items[${index}][name]`, itemName);
-            formData.append(`items[${index}][category_id]`, selectedCategory);
-            formData.append(`items[${index}][amount]`, amount);
-            formData.append(`items[${index}][calendar_date]`, calendarDate);
+            const calendarDate = row.querySelector('input[name="calendar_date"]').value;
+            
+            return {
+                id: id ? parseInt(id) : undefined,
+                name: itemName,
+                category_id: parseInt(selectedCategory),
+                amount: parseInt(amount),
+                date: calendarDate
+            };
         });
 
-        axios
-            .post("/api/expenditure/bulk_create", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data", // ヘッダーを設定
-                },
-            })
-            .then((response) => {
+        const formData = new FormData();
+
+        items.forEach((item, index) => {
+            if (item.id) {
+                formData.append(`items[${index}][id]`, item.id.toString());
+            } else {
+                formData.append(`items[${index}][id]`, '');
+            }
+            formData.append(`items[${index}][name]`, item.name);
+            formData.append(`items[${index}][category_id]`, item.category_id.toString());
+            formData.append(`items[${index}][amount]`, item.amount.toString());
+            formData.append(`items[${index}][calendar_date]`, item.date);
+        });
+
+        expenditureService.bulkCreateExpenditure(formData)
+            .then(() => {
                 closeModal();
             });
     };
@@ -325,24 +312,49 @@ export default function BulkOperation() {
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3">
                                         CSV出力
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4">
+                                    
+                                    <p className="text-gray-600 text-sm mb-6">
                                         期間を指定して支出データをCSVで出力します
                                     </p>
 
-                                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
                                         <div>
                                             <label className="block mb-2 text-sm font-medium text-gray-900">
                                                 開始日
                                             </label>
-                                            <DatePicker
-                                                selected={dateRange.startDate}
-                                                onChange={(date) => {
-                                                    setDateRange({
-                                                        startDate: date,
-                                                        endDate: dateRange.endDate,
-                                                    });
-                                                }}
-                                            />
+                                            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
+                                                <DatePicker
+                                                    value={dateRange.startDate}
+                                                    onChange={(date) => {
+                                                        setDateRange({
+                                                            startDate: date,
+                                                            endDate: dateRange.endDate,
+                                                        });
+                                                    }}
+                                                    slotProps={{ textField: { fullWidth: false, size: 'small' } }}
+                                                />
+                                            </LocalizationProvider>
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-2 text-sm font-medium text-gray-900">
+                                                終了日
+                                            </label>
+                                            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
+                                                <DatePicker
+                                                    value={dateRange.endDate}
+                                                    onChange={(date) => {
+                                                        setDateRange({
+                                                            startDate: dateRange.startDate,
+                                                            endDate: date,
+                                                        });
+                                                    }}
+                                                    slotProps={{ textField: { fullWidth: false, size: 'small' } }}
+                                                />
+                                            </LocalizationProvider>
+                                        </div>
+
+                                        <div>
                                         </div>
                                     </div>
 
@@ -603,26 +615,27 @@ export default function BulkOperation() {
                                                         </select>
                                                     </td>
                                                     <td className="px-3 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                                        <DatePicker
-                                                            name="calendar_date"
-                                                            selected={csvPreviewList[index].date ? new Date(csvPreviewList[index].date) : new Date()}
-                                                            onChange={(date) => {
-                                                                // ISO形式の日付文字列に変換
-                                                                const formattedDate = date.toISOString().split('T')[0];
-                                                                
-                                                                setCsvPreviewList(
-                                                                    (prev) => ({
-                                                                        ...prev,
-                                                                        [index]: {
-                                                                            ...prev[index],
-                                                                            date: formattedDate,
-                                                                        },
-                                                                    })
-                                                                );
-                                                            }}
-                                                            dateFormat="yyyy/MM/dd"
-                                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5"
-                                                        />
+                                                        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
+                                                            <DatePicker
+                                                                name="calendar_date"
+                                                                value={csvPreviewList[index].date ? new Date(csvPreviewList[index].date) : new Date()}
+                                                                onChange={(date) => {
+                                                                    // ISO形式の日付文字列に変換
+                                                                    const formattedDate = date.toISOString().split('T')[0];
+                                                                    
+                                                                    setCsvPreviewList(
+                                                                        (prev) => ({
+                                                                            ...prev,
+                                                                            [index]: {
+                                                                                ...prev[index],
+                                                                                date: formattedDate,
+                                                                            },
+                                                                        })
+                                                                    );
+                                                                }}
+                                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 w-full p-2.5"
+                                                            />
+                                                        </LocalizationProvider>
                                                     </td>
                                                     <td className="px-3 py-4 font-medium text-gray-900 whitespace-nowrap">
                                                         <button
