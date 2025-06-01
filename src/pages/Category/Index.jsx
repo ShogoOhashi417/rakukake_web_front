@@ -23,9 +23,10 @@ export default function Category() {
                 setUser(userData);
                 setLoading(false);
             } catch (e) {
-                setUser(null);
-                setLoading(false);
-                navigate('/');
+                console.error(e);
+                // setUser(null);
+                // setLoading(false);
+                // navigate('/');
             }
         };
         fetchUser();
