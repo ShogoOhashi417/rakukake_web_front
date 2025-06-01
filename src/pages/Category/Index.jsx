@@ -20,12 +20,14 @@ export default function Category() {
         const fetchUser = async () => {
             try {
                 const userData = await userService.getProfile();
+                console.error(userData);
                 setUser(userData);
                 setLoading(false);
             } catch (e) {
-                setUser(null);
-                setLoading(false);
-                navigate('/');
+                console.error(e);
+                // setUser(null);
+                // setLoading(false);
+                // navigate('/');
             }
         };
         fetchUser();
@@ -243,7 +245,7 @@ export default function Category() {
     }
 
     if (!user) {
-        return null;
+        return <div className="flex items-center justify-center min-h-screen">リダイレクト中...</div>;
     }
 
     return (
