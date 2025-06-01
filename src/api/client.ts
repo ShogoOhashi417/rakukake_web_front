@@ -9,10 +9,31 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
+// CSRFトークンを取得するための関数
+const getCsrfToken = async () => {
+  try {
+    const response = await apiClient.get('/api/csrf-token');
+    return response.data.token;
+  } catch (error) {
+    console.error('CSRFトークン取得エラー:', error);
+    return null;
+  }
+};
+
 // リクエスト時の共通処理
 apiClient.interceptors.request.use(
-  (config) => {
-    // 認証トークンを追加するなどの処理をここに実装できます
+  async (config) => {
+    // GETリクエストはCSRFトークンが不要
+    if (config.method !== 'get') {
+      try {
+        const token = await getCsrfToken();
+        if (token) {
+          config.headers['X-CSRF-TOKEN'] = token;
+        }
+      } catch (error) {
+        console.error('インターセプターエラー:', error);
+      }
+    }
     return config;
   },
   (error) => {
