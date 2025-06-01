@@ -14,6 +14,7 @@ import ReportExpense from './pages/Report/Expense';
 import BulkOperation from './pages/BulkOperation/ExpenseBulkOperation';
 import Edit from './pages/Profile/Edit';
 import ForgotPassword from './pages/Auth/ForgotPassword';
+import apiClient from './api/client';
 
 // ユーザープロフィールページのコンポーネント
 const ProfilePage: React.FC = () => {
@@ -74,6 +75,21 @@ const NotFoundPage: React.FC = () => (
 
 // メインのApp関数でルーティングを定義
 function App() {
+  useEffect(() => {
+    // アプリケーション初回ロード時にCSRF Cookieを取得
+    const fetchCsrfCookie = async () => {
+      try {
+        await apiClient.get('/sanctum/csrf-cookie');
+        console.log('CSRF cookie fetched successfully.');
+      } catch (error) {
+        console.error('Failed to fetch CSRF cookie:', error);
+        // CSRFトークン取得失敗時のエラーハンドリングをここに追加できます
+      }
+    };
+
+    fetchCsrfCookie();
+  }, []); // 空の依存配列により、マウント時に一度だけ実行
+
   return (
     <Routes>
       <Route path="/" element={<Welcome />} />
