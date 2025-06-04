@@ -46,7 +46,6 @@ export default function Income() {
     const [incomeCategoryId, setIncomeCategoryId] = useState(0);
     const [incomeAmount, setIncomeAmount] = useState(0);
     
-    // Initialize this above the useEffect to prevent race conditions
     const [incomeInfoList, setincomeInfoList] = useState([]);
 
     const getInfo = async () => {
