@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Dropdown = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -142,12 +143,19 @@ const ApplicationLogo = ({ className }) => {
   );
 };
 
-export default function AuthenticatedLayout({ user = { name: 'ユーザー', email: 'user@example.com' }, header, children }) {
+export default function AuthenticatedLayout({ header, children }) {
+  const { user, loading, isAuthenticated, logout: authLogout } = useAuth();
   const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   
-  // 現在のパスがアクティブかどうかを判断する関数
+  // 認証チェックとリダイレクトをuseEffect内で処理
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !user)) {
+      navigate('/login');
+    }
+  }, [loading, isAuthenticated, user, navigate]);
+  
   const isActive = (path) => {
     return location.pathname === path;
   };
@@ -158,27 +166,11 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-XSRF-TOKEN': getCookie('XSRF-TOKEN'),
-        },
-      });
-
-      if (response.ok) {
-        localStorage.removeItem('token');
-        navigate('/login');
-      } else {
-        console.error('ログアウトに失敗しました');
-      }
-    } catch (error) {
-      localStorage.removeItem('token');
+      await authLogout();
       navigate('/login');
-
-      return;
+    } catch (error) {
+      console.error('ログアウトエラー:', error);
+      navigate('/login');
     }
   };
 
@@ -188,6 +180,28 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
     if (parts.length === 2) return parts.pop().split(';').shift();
     return null;
   };
+
+  // ローディング中の表示
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-gray-600">読み込み中...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 認証されていない場合は何も表示しない（useEffectでリダイレクト処理）
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-gray-600">リダイレクト中...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -343,7 +357,7 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
                         type="button"
                         className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
                       >
-                        {user.name}
+                        {user?.name || 'ユーザー'}
 
                         <svg
                           className="ml-2 -mr-0.5 h-4 w-4"
@@ -423,8 +437,8 @@ export default function AuthenticatedLayout({ user = { name: 'ユーザー', ema
 
           <div className="pt-4 pb-1 border-t border-gray-200">
             <div className="px-4">
-              <div className="font-medium text-base text-gray-800">{user.name}</div>
-              <div className="font-medium text-sm text-gray-500">{user.email}</div>
+              <div className="font-medium text-base text-gray-800">{user?.name || 'ユーザー'}</div>
+              <div className="font-medium text-sm text-gray-500">{user?.email || 'user@example.com'}</div>
             </div>
 
             <div className="mt-3 space-y-1">
