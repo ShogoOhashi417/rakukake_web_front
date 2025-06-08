@@ -6,30 +6,20 @@ import { Button } from "../../components/ui/button";
 import PrimaryButton from "../../components/PrimaryButton";
 import SecondaryButton from "../../components/SecondaryButton";
 import { categoryService } from "../../api/services/categoryService";
-import { userService } from "../../api/services/userService";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Category() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { user, loading } = useAuth();
     const navigate = useNavigate();
 
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([]);
     const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
 
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const userData = await userService.getProfile();
-                setUser(userData);
-                setLoading(false);
-            } catch (e) {
-                setUser(null);
-                setLoading(false);
-                navigate('/');
-            }
-        };
-        fetchUser();
-    }, [navigate]);
+        if (!loading && !user) {
+            navigate('/login');
+        }
+    }, [user, loading, navigate]);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -243,12 +233,11 @@ export default function Category() {
     }
 
     if (!user) {
-        return null;
+        return <div className="flex items-center justify-center min-h-screen">リダイレクト中...</div>;
     }
 
     return (
         <AuthenticatedLayout
-            user={user}
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                     カテゴリー管理

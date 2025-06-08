@@ -1,17 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InputError from '../../../components/InputError';
 import InputLabel from '../../../components/InputLabel';
 import TextInput from '../../../components/TextInput';
 import userService from '../../../api/services/userService';
+import { useAuth } from '../../../contexts/AuthContext';
 
-export default function UpdateProfileInformation({ user, className = '' }) {
+export default function UpdateProfileInformation({ className = '' }) {
+    const { user, loading, updateUser } = useAuth();
     const [formData, setFormData] = useState({
-        name: user.name,
-        email: user.email,
+        name: '',
+        email: '',
     });
     const [errors, setErrors] = useState({});
     const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                email: user.email || '',
+            });
+        }
+    }, [user]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -27,7 +38,8 @@ export default function UpdateProfileInformation({ user, className = '' }) {
         setErrors({});
         
         try {
-            await userService.updateProfile(formData);
+            const updatedUser = await userService.updateProfile(formData);
+            updateUser(updatedUser);
             setSuccess(true);
             setTimeout(() => setSuccess(false), 2000);
         } catch (error) {
@@ -41,6 +53,14 @@ export default function UpdateProfileInformation({ user, className = '' }) {
             setProcessing(false);
         }
     };
+
+    if (loading) {
+        return (
+            <section className={className}>
+                <div className="text-center py-4">読み込み中...</div>
+            </section>
+        );
+    }
 
     return (
         <section className={className}>

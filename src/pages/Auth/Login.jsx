@@ -7,9 +7,11 @@ import TextInput from '../../components/TextInput';
 import { Link, useNavigate } from 'react-router-dom';
 import { Wallet } from "lucide-react";
 import apiClient from '../../api/client';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Login() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [status, setStatus] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState({});
@@ -57,32 +59,26 @@ export default function Login() {
         setErrors({});
         
         try {
-            const response = await apiClient.post('/api/login', {
+            const result = await login({
                 email: data.email,
                 password: data.password,
                 remember: data.remember
             });
             
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-            }
-            
-            localStorage.setItem('user', JSON.stringify(response.data.user || { email: data.email }));
-            
-            if (response.data.token) {
-                apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-            }
-            
-            navigate('/report/savings');
-        } catch (error) {
-            if (error.response && error.response.status === 422) {
-                setErrors(error.response.data.errors);
-            } else if (error.response && error.response.data.message) {
-                setStatus(error.response.data.message);
+            if (result.success) {
+                console.log('Login successful, navigating to /report/savings');
+                navigate('/report/savings');
             } else {
-                setStatus('ログインに失敗しました。再度お試しください。');
-                console.error('Login error:', error);
+                console.log('Login failed:', result);
+                if (result.errors) {
+                    setErrors(result.errors);
+                } else {
+                    setStatus(result.error || 'ログインに失敗しました。');
+                }
             }
+        } catch (error) {
+            console.error('Login exception:', error);
+            setStatus('ログインに失敗しました。再度お試しください。');
         } finally {
             setProcessing(false);
         }
