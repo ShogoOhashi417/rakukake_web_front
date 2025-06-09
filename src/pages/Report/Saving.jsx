@@ -3,8 +3,11 @@ import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { reportService } from "../../api/services/reportService";
+import { useAuth } from "../../contexts/AuthContext";
 
-export default function Saving({ auth = { user: {} }, incomeDataList = { category_to_amount_list: {} }, expenseDataList = { category_to_amount_list: {} } }) {
+export default function Saving() {
+    const { user } = useAuth();
+    
     const getMonth = (year, month, period) => {
         const date = new Date(year, month - 1 + period, 1);
         const resultYear = date.getFullYear();
@@ -119,8 +122,8 @@ export default function Saving({ auth = { user: {} }, incomeDataList = { categor
         setRelativePeriod(event.target.value);
     }
 
-    const [incomeInfoList, setIncomeInfoList] = useState(incomeDataList?.category_to_amount_list || {});
-    const [expenditureInfoList, setExpenditureInfoList] = useState(expenseDataList?.category_to_amount_list || {});
+    const [incomeInfoList, setIncomeInfoList] = useState({});
+    const [expenditureInfoList, setExpenditureInfoList] = useState({});
     const [combinedChartOptions, setCombinedChartOptions] = useState({});
 
     useEffect(() => {
@@ -316,7 +319,7 @@ export default function Saving({ auth = { user: {} }, incomeDataList = { categor
 
     return (
         <AuthenticatedLayout
-            user={auth?.user || {}}
+            user={user || {}}
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                     貯金額レポート

@@ -14,6 +14,7 @@ import {
 } from "@tanstack/react-table";
 import { categoryService } from "../../api/services/categoryService";
 import { fixedIncomeService } from "../../api/services/fixedIncomeService";
+import { useAuth } from "../../contexts/AuthContext";
 
 // DatePickerの幅を100%にするためのスタイル
 const globalStyles = `
@@ -71,14 +72,11 @@ const globalStyles = `
 }
 `;
 
-export default function Fixed({
-    incomeDataList = [],
-    IncomeCategoryDataList = [],
-}) {
-    const [incomeInfoList, setIncomeInfoList] = useState(incomeDataList);
-    const [categoryInfoList, setCategoryInfoList] = useState(
-        IncomeCategoryDataList
-    );
+export default function Fixed() {
+    const { user } = useAuth();
+    
+    const [incomeInfoList, setIncomeInfoList] = useState([]);
+    const [categoryInfoList, setCategoryInfoList] = useState([]);
 
     const [incomeId, setIncomeId] = useState(0);
     const [incomeName, setIncomeName] = useState("");
@@ -364,6 +362,7 @@ export default function Fixed({
         <>
             <style>{globalStyles}</style>
             <AuthenticatedLayout
+                user={user}
                 header={
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                         固定収入管理

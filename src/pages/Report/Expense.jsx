@@ -4,8 +4,11 @@ import HighchartsReact from "highcharts-react-official";
 import YearSelectBox from "../../components/YearSelectBox";
 import { reportService } from "../../api/services/reportService";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
+import { useAuth } from "../../contexts/AuthContext";
 
-export default function ExpenseReport({ auth = { user: { name: '' } }, expenseInfoList = { category_to_amount_list: {} } }) {
+export default function ExpenseReport() {
+    const { user } = useAuth();
+    
     const getMonth = (year, month, period) => {
         const date = new Date(year, month - 1 + period, 1);
         const resultYear = date.getFullYear();
@@ -162,7 +165,7 @@ export default function ExpenseReport({ auth = { user: { name: '' } }, expenseIn
         }
     };
 
-    const [expenditureInfoList, setExpenditureInfoList] = useState(expenseInfoList?.category_to_amount_list || {});
+    const [expenditureInfoList, setExpenditureInfoList] = useState({});
 
     // 初期ロード時にデータを取得
     useEffect(() => {
@@ -270,7 +273,7 @@ export default function ExpenseReport({ auth = { user: { name: '' } }, expenseIn
     return (
         <>
             <AuthenticatedLayout
-                user={auth.user}
+                user={user}
                 header={
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                         レポート

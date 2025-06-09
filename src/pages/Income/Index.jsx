@@ -13,33 +13,10 @@ import {
 } from "@tanstack/react-table";
 import { incomeService } from "../../api/services/incomeService";
 import { categoryService } from "../../api/services/categoryService";
-
-function useAuth() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                const userData = JSON.parse(storedUser);
-                setUser(userData);
-            } catch (e) {
-                console.error('認証情報の解析に失敗しました', e);
-                localStorage.removeItem('user');
-                window.location.href = '/login';
-            }
-        } else {
-            window.location.href = '/login';
-        }
-        setLoading(false);
-    }, []);
-
-    return { user, loading };
-}
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Income() {
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
 
     const [incomeId, setIncomeId] = useState(0);
     const [incomeName, setIncomeName] = useState('');
@@ -216,16 +193,6 @@ export default function Income() {
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
     });
-
-    // ローディング中は何も表示しない
-    if (loading) {
-        return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
-    }
-
-    // ユーザーがない場合は何も表示しない（リダイレクト処理中）
-    if (!user) {
-        return null;
-    }
 
     return (
         <AuthenticatedLayout
