@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import { X, Edit, Trash2, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -9,17 +8,10 @@ import { categoryService } from "../../api/services/categoryService";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Category() {
-    const { user, loading } = useAuth();
-    const navigate = useNavigate();
+    const { user } = useAuth();
 
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([]);
     const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
-
-    useEffect(() => {
-        if (!loading && !user) {
-            navigate('/login');
-        }
-    }, [user, loading, navigate]);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -227,14 +219,6 @@ export default function Category() {
             alert("カテゴリーの削除に失敗しました。");
         }
     };
-
-    if (loading) {
-        return <div className="flex items-center justify-center min-h-screen">読み込み中...</div>;
-    }
-
-    if (!user) {
-        return <div className="flex items-center justify-center min-h-screen">リダイレクト中...</div>;
-    }
 
     return (
         <AuthenticatedLayout

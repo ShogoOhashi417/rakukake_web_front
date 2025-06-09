@@ -12,9 +12,12 @@ import { categoryService } from "../../api/services/categoryService";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import ja from 'date-fns/locale/ja';
+import { useAuth } from "../../contexts/AuthContext";
 
 
 export default function BulkOperation() {
+    const { user } = useAuth();
+    
     const [activeTab, setActiveTab] = useState("upload");
     const [dateRange, setDateRange] = useState(() => {
         const today = new Date();
@@ -186,6 +189,7 @@ export default function BulkOperation() {
     return (
         <>
             <AuthenticatedLayout
+                user={user}
                 header={
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                         CSV一括処理

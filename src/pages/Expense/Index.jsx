@@ -9,14 +9,10 @@ import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import axios from "axios";
 import { categoryService } from "../../api/services/categoryService";
 import { expenditureService } from "../../api/services/expenditureService";
+import { useAuth } from "../../contexts/AuthContext";
 
-export default function Expense({
-    auth,
-    expenditure_info_list,
-    expenditure_category_info_list,
-}) {
-    // authが存在しない場合のデフォルト値を設定
-    auth = auth || { user: null };
+export default function Expense() {
+    const { user } = useAuth();
     
     useEffect(() => {
         document.title = "支出管理";
@@ -24,9 +20,7 @@ export default function Expense({
         getCategories();
     }, []);
     
-    const [expenditureInfoList, setExpenditureInfoList] = useState(
-        expenditure_info_list || []
-    );
+    const [expenditureInfoList, setExpenditureInfoList] = useState([]);
 
     const [expenditureId, setExpenditureId] = useState(0);
     const [expenditureName, setExpenditureName] = useState("");
@@ -35,9 +29,7 @@ export default function Expense({
     const [sortField, setSortField] = useState(null);
     const [sortDirection, setSortDirection] = useState('asc');
 
-    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState(
-        expenditure_category_info_list || []
-    );
+    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
 
     const getCategories = async () => {
         try {
@@ -218,7 +210,7 @@ export default function Expense({
     return (
         <>
             <AuthenticatedLayout
-                user={auth?.user || { name: 'ゲスト', email: 'guest@example.com' }}
+                user={user || { name: 'ゲスト', email: 'guest@example.com' }}
                 header={
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                         支出管理

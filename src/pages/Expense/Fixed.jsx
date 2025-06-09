@@ -13,23 +13,18 @@ import {
 } from "@tanstack/react-table";
 import { categoryService } from "../../api/services/categoryService";
 import { fixedExpenseService } from "../../api/services/fixedExpenseService";
+import { useAuth } from "../../contexts/AuthContext";
 
 const globalStyles = `
 	.react-datepicker-wrapper {
     width: 100% !important;
 }`;
 
-export default function FixedExpense({
-    auth = { user: { name: 'ユーザー', email: 'user@example.com' } },
-    expenditure_info_list = [],
-    expenditure_category_info_list = [],
-}) {
-    const [expenditureInfoList, setExpenditureInfoList] = useState(
-        expenditure_info_list
-    );
-    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState(
-        expenditure_category_info_list
-    );
+export default function FixedExpense() {
+    const { user } = useAuth();
+    
+    const [expenditureInfoList, setExpenditureInfoList] = useState([]);
+    const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
 
     const [expenditureId, setExpenditureId] = useState(0);
     const [expenditureName, setExpenditureName] = useState("");
@@ -309,7 +304,7 @@ export default function FixedExpense({
         <>
             <style>{globalStyles}</style>
             <AuthenticatedLayout
-                user={auth.user}
+                user={user}
                 header={
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                         固定支出管理

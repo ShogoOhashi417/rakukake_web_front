@@ -130,20 +130,12 @@ function App() {
 
         <Route path="/expenses" element={
           <ProtectedRoute>
-            <Expense 
-              auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
-              expenditure_info_list={[]} 
-              expenditure_category_info_list={[]} 
-            />
+            <Expense />
           </ProtectedRoute>
         } />
         <Route path="/expenses/fixed" element={
           <ProtectedRoute>
-            <ExpenseFixed 
-              auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
-              expenditure_info_list={[]} 
-              expenditure_category_info_list={[]} 
-            />
+            <ExpenseFixed />
           </ProtectedRoute>
         } />
 
