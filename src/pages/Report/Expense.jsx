@@ -19,6 +19,7 @@ export default function ExpenseReport() {
 
     const [totalChartOptions, setTotalChartOptions] = useState([]);
     const [chartOptionsList, setChartOptionsList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const thisDate = new Date();
     const thisYear = thisDate.getFullYear();
@@ -61,6 +62,7 @@ export default function ExpenseReport() {
     const fetchDataWithDates = async (dates) => {
         if (!dates || dates.length === 0) return;
 
+        setIsLoading(true);
         const startDate = dates[0] + '-01';
         
         const [year, month] = dates[dates.length - 1].split('-');
@@ -77,6 +79,8 @@ export default function ExpenseReport() {
         } catch (error) {
             console.error('データの取得に失敗しました:', error);
             setExpenditureInfoList({});
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -306,19 +310,27 @@ export default function ExpenseReport() {
                                 </select>
                             </div>
                             <div className="mx-auto mt-3">
-                                <HighchartsReact
-                                    highcharts={Highcharts}
-                                    options={totalChartOptions}
-                                />
-
-                                {chartOptionsList.map((options, index) => (
-                                    <div key={index} className="mt-3">
+                                {isLoading ? (
+                                    <div className="flex justify-center items-center py-12">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                    </div>
+                                ) : (
+                                    <>
                                         <HighchartsReact
                                             highcharts={Highcharts}
-                                            options={options}
+                                            options={totalChartOptions}
                                         />
-                                    </div>
-                                ))}
+
+                                        {chartOptionsList.map((options, index) => (
+                                            <div key={index} className="mt-3">
+                                                <HighchartsReact
+                                                    highcharts={Highcharts}
+                                                    options={options}
+                                                />
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>

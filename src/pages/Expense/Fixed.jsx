@@ -25,6 +25,7 @@ export default function FixedExpense() {
     
     const [expenditureInfoList, setExpenditureInfoList] = useState([]);
     const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [expenditureId, setExpenditureId] = useState(0);
     const [expenditureName, setExpenditureName] = useState("");
@@ -105,12 +106,15 @@ export default function FixedExpense() {
     }
 
     const getInfo = async () => {
+        setIsLoading(true);
         try {
             const fixedExpenses = await fixedExpenseService.getFixedExpenses();
             setExpenditureInfoList(fixedExpenses);
         } catch (error) {
             console.error("データの取得に失敗しました", error);
             setExpenditureInfoList([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -357,7 +361,15 @@ export default function FixedExpense() {
                                                 ))}
                                         </thead>
                                         <tbody>
-                                            {table.getRowModel().rows.length > 0 ? (
+                                            {isLoading ? (
+                                                <tr className="bg-white border-b">
+                                                    <td colSpan={9} className="px-6 py-12 text-center">
+                                                        <div className="flex justify-center items-center">
+                                                            <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : table.getRowModel().rows.length > 0 ? (
                                                 table
                                                     .getRowModel()
                                                     .rows.map((row) => (

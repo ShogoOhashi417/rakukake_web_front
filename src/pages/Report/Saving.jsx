@@ -26,6 +26,7 @@ export default function Saving() {
     }
     
     const [dateList, setDateList] = useState(initialDateList);
+    const [isLoading, setIsLoading] = useState(true);
 
     const INITIAL_SAVINGS = 500000;
 
@@ -97,6 +98,7 @@ export default function Saving() {
     };
 
     const fetchChart = async () => {
+        setIsLoading(true);
         try {
             const response = await reportService.getSavingReport({
                 start_date: dateList[0] + '-01',
@@ -109,6 +111,8 @@ export default function Saving() {
             console.error('Failed to fetch chart data:', error);
             setIncomeInfoList({});
             setExpenditureInfoList({});
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -350,10 +354,16 @@ export default function Saving() {
                             </div>
 
                             <div className="mb-8">
-                                <HighchartsReact
-                                    highcharts={Highcharts}
-                                    options={combinedChartOptions}
-                                />
+                                {isLoading ? (
+                                    <div className="flex justify-center items-center py-12">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                    </div>
+                                ) : (
+                                    <HighchartsReact
+                                        highcharts={Highcharts}
+                                        options={combinedChartOptions}
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>
