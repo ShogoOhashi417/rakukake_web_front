@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import userService, { User } from './api/services/userService';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Welcome from './pages/Welcome';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -91,38 +93,76 @@ function App() {
   }, []); // 空の依存配列により、マウント時に一度だけ実行
 
   return (
-    <Routes>
-      <Route path="/" element={<Welcome />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      <Route path="/profile" element={<Edit />} />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Edit />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/report/savings" element={<Report />} />
-      <Route path="/report/expenses" element={<ReportExpense />} />
-      
-      <Route path="/incomes" element={<Income />} />
-      <Route path="/incomes/fixed" element={<IncomeFixed />} />
+        <Route path="/report/savings" element={
+          <ProtectedRoute>
+            <Report />
+          </ProtectedRoute>
+        } />
+        <Route path="/report/expenses" element={
+          <ProtectedRoute>
+            <ReportExpense />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/incomes" element={
+          <ProtectedRoute>
+            <Income />
+          </ProtectedRoute>
+        } />
+        <Route path="/incomes/fixed" element={
+          <ProtectedRoute>
+            <IncomeFixed />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/expenses" element={<Expense 
-        auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
-        expenditure_info_list={[]} 
-        expenditure_category_info_list={[]} 
-      />} />
-      <Route path="/expenses/fixed" element={<ExpenseFixed 
-        auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
-        expenditure_info_list={[]} 
-        expenditure_category_info_list={[]} 
-      />} />
+        <Route path="/expenses" element={
+          <ProtectedRoute>
+            <Expense 
+              auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
+              expenditure_info_list={[]} 
+              expenditure_category_info_list={[]} 
+            />
+          </ProtectedRoute>
+        } />
+        <Route path="/expenses/fixed" element={
+          <ProtectedRoute>
+            <ExpenseFixed 
+              auth={{ user: { name: 'ゲスト', email: 'guest@example.com' } }} 
+              expenditure_info_list={[]} 
+              expenditure_category_info_list={[]} 
+            />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/categories" element={<Category />} />
+        <Route path="/categories" element={
+          <ProtectedRoute>
+            <Category />
+          </ProtectedRoute>
+        } />
 
-      <Route path="/bulk-operations" element={<BulkOperation />} />
-      
-      <Route path="/404" element={<NotFoundPage />} />
-      <Route path="*" element={<Navigate to="/404" replace />} />
-    </Routes>
+        <Route path="/bulk-operations" element={
+          <ProtectedRoute>
+            <BulkOperation />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/404" element={<NotFoundPage />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 
