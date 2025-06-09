@@ -28,6 +28,8 @@ export default function BulkOperation() {
         };
     });
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const exportSampleCsv = () => {
         expenditureService.exportSampleCsv().then((data) => {
@@ -94,7 +96,6 @@ export default function BulkOperation() {
     const [csvPreviewList, setCsvPreviewList] = useState([]);
 
     const [fileName, setFileName] = useState("ファイルを選択してください");
-    const [isUploading, setIsUploading] = useState(false);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -107,12 +108,19 @@ export default function BulkOperation() {
         
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
+            setIsProcessing(true);
 
             expenditureService.importCsv(file)
                 .then((response) => {
                     getExpenditureCategory();
                     setCsvPreviewList(JSON.parse(response.uploadDataList));
                     openModal();
+                })
+                .catch((error) => {
+                    console.error('CSV upload error:', error);
+                })
+                .finally(() => {
+                    setIsProcessing(false);
                 });
         }
     };
@@ -296,16 +304,23 @@ export default function BulkOperation() {
 
                                         <PrimaryButton
                                             onClick={uploadCsv}
-                                            disabled={
-                                                isUploading ? false : true
-                                            }
+                                            disabled={!isUploading || isProcessing}
                                             className="ml-3"
                                         >
-                                            <FontAwesomeIcon
-                                                icon={faUpload}
-                                                className="mr-3"
-                                            />
-                                            アップロード
+                                            {isProcessing ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-200 border-t-white mr-3"></div>
+                                                    処理中...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FontAwesomeIcon
+                                                        icon={faUpload}
+                                                        className="mr-3"
+                                                    />
+                                                    アップロード
+                                                </>
+                                            )}
                                         </PrimaryButton>
                                     </div>
                                 </div>

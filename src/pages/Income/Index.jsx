@@ -24,14 +24,18 @@ export default function Income() {
     const [incomeAmount, setIncomeAmount] = useState(0);
     
     const [incomeInfoList, setincomeInfoList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const getInfo = async () => {
+        setIsLoading(true);
         try {
             const incomeList = await incomeService.getIncomeList();
             setincomeInfoList(incomeList);
         } catch (error) {
             console.error('Error fetching income data:', error);
             setincomeInfoList([]);
+        } finally {
+            setIsLoading(false);
         }
     }
     
@@ -234,7 +238,15 @@ export default function Income() {
                                         ))}
                                     </thead>
                                     <tbody>
-                                    {table.getRowModel().rows.length > 0 ? (
+                                    {isLoading ? (
+                                        <tr className="bg-white border-b">
+                                            <td colSpan={4} className="px-6 py-12 text-center">
+                                                <div className="flex justify-center items-center">
+                                                    <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : table.getRowModel().rows.length > 0 ? (
                                         table.getRowModel().rows.map((row) => (
                                             <tr
                                                 key={row.id}
@@ -277,7 +289,7 @@ export default function Income() {
                                         ))
                                     ) : (
                                         <tr className="bg-white border-b">
-                                            <td colSpan={9} className="px-6 py-4 text-center font-medium text-gray-900">
+                                            <td colSpan={4} className="px-6 py-4 text-center font-medium text-gray-900">
                                                 データがありません。右上の ➕ から固定収入を登録してください。
                                             </td>
                                         </tr>

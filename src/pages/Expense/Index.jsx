@@ -21,6 +21,7 @@ export default function Expense() {
     }, []);
     
     const [expenditureInfoList, setExpenditureInfoList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [expenditureId, setExpenditureId] = useState(0);
     const [expenditureName, setExpenditureName] = useState("");
@@ -105,12 +106,15 @@ export default function Expense() {
     };
 
     const getInfo = async () => {
+        setIsLoading(true);
         try {
             const expenditureList = await expenditureService.getExpenditureList();
             setExpenditureInfoList(expenditureList);
         } catch (error) {
             console.error('支出データの取得に失敗しました:', error);
             setExpenditureInfoList([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -253,7 +257,15 @@ export default function Expense() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {expenditureInfoList.length > 0 ? (
+                                            {isLoading ? (
+                                                <tr className="bg-white border-b">
+                                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                                        <div className="flex justify-center items-center">
+                                                            <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : expenditureInfoList.length > 0 ? (
                                                 expenditureInfoList.map((item, index) => (
                                                     <tr
                                                         key={index}

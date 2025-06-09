@@ -12,9 +12,11 @@ export default function Category() {
 
     const [incomeCategoryInfoList, setIncomeCategoryInfoList] = useState([]);
     const [expenditureCategoryInfoList, setExpenditureCategoryInfoList] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchCategories = async () => {
+            setIsLoading(true);
             try {
                 const [incomeCategories, expenditureCategories] = await Promise.all([
                     categoryService.getIncomeCategories(),
@@ -39,6 +41,8 @@ export default function Category() {
             } catch (e) {
                 setIncomeCategoryInfoList([]);
                 setExpenditureCategoryInfoList([]);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchCategories();
@@ -122,9 +126,8 @@ export default function Category() {
 
     const saveExpenditureCategory = async () => {
         try {
-            const response = await categoryService.addExpenditureCategory(expenditureCategoryName);
+            const response = await categoryService.addExpenseCategory(expenditureCategoryName);
             
-            console.error(response);
             const newCategory = {
                 id: response.categoryData.id,
                 name: response.categoryData.name
@@ -269,45 +272,51 @@ export default function Category() {
                                         カテゴリー追加
                                     </Button>
 
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    カテゴリー名
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    操作
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {incomeCategoryInfoList.map((category) => (
-                                                <tr key={category.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <Button
-                                                            onClick={() => showEditIncomeCategoryModal(category.id, category.name)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="mr-2"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => deleteIncomeCategory(category.id)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-red-500"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </td>
+                                    {isLoading ? (
+                                        <div className="flex justify-center items-center py-12">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                        </div>
+                                    ) : (
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        カテゴリー名
+                                                    </th>
+                                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        操作
+                                                    </th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {incomeCategoryInfoList.map((category) => (
+                                                    <tr key={category.id}>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <Button
+                                                                onClick={() => showEditIncomeCategoryModal(category.id, category.name)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="mr-2"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => deleteIncomeCategory(category.id)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-500"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
                                 </div>
                             )}
 
@@ -321,45 +330,51 @@ export default function Category() {
                                         カテゴリー追加
                                     </Button>
 
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    カテゴリー名
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    操作
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {expenditureCategoryInfoList.map((category) => (
-                                                <tr key={category.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <Button
-                                                            onClick={() => showEditExpenditureCategoryModal(category.id, category.name)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="mr-2"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => deleteExpenditureCategory(category.id)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-red-500"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </td>
+                                    {isLoading ? (
+                                        <div className="flex justify-center items-center py-12">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-500"></div>
+                                        </div>
+                                    ) : (
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        カテゴリー名
+                                                    </th>
+                                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        操作
+                                                    </th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {expenditureCategoryInfoList.map((category) => (
+                                                    <tr key={category.id}>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <Button
+                                                                onClick={() => showEditExpenditureCategoryModal(category.id, category.name)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="mr-2"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => deleteExpenditureCategory(category.id)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-500"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
                                 </div>
                             )}
                         </div>
