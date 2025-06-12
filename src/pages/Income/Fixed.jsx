@@ -1,6 +1,6 @@
 import React from "react";
 import { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
@@ -15,6 +15,7 @@ import {
 import { categoryService } from "../../api/services/categoryService";
 import { fixedIncomeService } from "../../api/services/fixedIncomeService";
 import { useAuth } from "../../contexts/AuthContext";
+import { Button } from "../../components/ui/button";
 
 // DatePickerの幅を100%にするためのスタイル
 const globalStyles = `
@@ -281,17 +282,35 @@ export default function Fixed() {
         () => [
             columnHelper.accessor("name", {
                 header: "収入名",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    const truncatedValue = value && value.length > 20 ? value.substring(0, 20) + '...' : value;
+                    return (
+                        <div title={value} className="max-w-xs">
+                            {truncatedValue}
+                        </div>
+                    );
+                },
             }),
             columnHelper.accessor("amount", {
                 header: "金額",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    return (
+                        <div className="text-left">
+                            {value ? value.toLocaleString() : 0}円
+                        </div>
+                    );
+                },
                 sortingFn: "basic",
                 formatValue: (value) => `${value.toLocaleString()}円`,
             }),
             columnHelper.accessor("period_type", {
                 header: "受け取りペース",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    return value === "month" ? "毎月" : "毎年";
+                },
                 sortingFn: "basic",
                 formatValue: (value) => (value === "month" ? "毎月" : "毎年"),
             }),
@@ -342,7 +361,15 @@ export default function Fixed() {
             }),
             columnHelper.accessor("category_name", {
                 header: "カテゴリー",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    const truncatedValue = value && value.length > 15 ? value.substring(0, 15) + '...' : value;
+                    return (
+                        <div title={value} className="max-w-xs">
+                            {truncatedValue}
+                        </div>
+                    );
+                },
                 sortingFn: "basic",
             }),
         ],
@@ -373,12 +400,25 @@ export default function Fixed() {
                     </h2>
                 }
             >
-                <div className="w-5/6 mx-auto my-3 flex-1 relative sm:justify-center bg-gray-100 selection:text-white">
-                    <div className="container">
-                        <div className="mx-auto mt-3">
-                            <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                                <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-                                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6 text-gray-900">
+                            <Button
+                                onClick={openAddModal}
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+                            >
+                                <PlusCircle className="w-4 h-4 mr-2" />
+                                固定収入追加
+                            </Button>
+
+                            {isLoading ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                </div>
+                            ) : (
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
                                         {table
                                             .getHeaderGroups()
                                             .map((headerGroup) => (
@@ -390,7 +430,8 @@ export default function Fixed() {
                                                                     header.id
                                                                 }
                                                                 onClick={header.column.getToggleSortingHandler()}
-                                                                className="cursor-pointer border px-4 py-2"
+                                                                scope="col"
+                                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                                             >
                                                                 {header.isPlaceholder
                                                                     ? null
@@ -407,32 +448,20 @@ export default function Fixed() {
                                                             </th>
                                                         )
                                                     )}
-                                                    <th className="w-10">
-                                                        <div className="flex justify-center items-center">
-                                                            <span className="icon-button" title="追加" onClick={openAddModal}>
-                                                                ➕
-                                                            </span>
-                                                        </div>
+                                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                                        操作
                                                     </th>
                                                 </tr>
                                             ))}
                                     </thead>
-                                    <tbody>
-                                        {isLoading ? (
-                                            <tr className="bg-white border-b">
-                                                <td colSpan={9} className="px-6 py-12 text-center">
-                                                    <div className="flex justify-center items-center">
-                                                        <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ) : table.getRowModel().rows.length > 0 ? (
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {table.getRowModel().rows.length > 0 ? (
                                             table
                                                 .getRowModel()
                                                 .rows.map((row) => (
                                                     <tr
                                                         key={row.id}
-                                                        className="bg-white border-b hover:bg-gray-50"
+                                                        className="hover:bg-gray-50"
                                                     >
                                                         {row
                                                             .getVisibleCells()
@@ -441,42 +470,56 @@ export default function Fixed() {
                                                                     key={
                                                                         cell.id
                                                                     }
-                                                                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                                                                    className="px-6 py-4 whitespace-nowrap"
                                                                 >
-                                                                    {cell.column
-                                                                        .columnDef
-                                                                        .formatValue
-                                                                        ? cell.column.columnDef.formatValue(
-                                                                            cell.getValue()
-                                                                        )
-                                                                        : cell.getValue()}
+                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                        {cell.column
+                                                                            .columnDef
+                                                                            .formatValue
+                                                                            ? cell.column.columnDef.formatValue(
+                                                                                cell.getValue()
+                                                                            )
+                                                                            : cell.getValue()}
+                                                                    </div>
                                                                 </td>
                                                             ))}
-                                                        <td>
-                                                            <div className="flex justify-center items-center gap-1">
-                                                                <span className="icon-button" title="編集" onClick={() => openUpdateModal(row.original.id, row.getValue("name"), row.original.category_id, row.getValue("amount"), row.getValue("payment_day"), row.getValue("payment_month"), row.getValue("period_start_date"), row.getValue("period_end_date"), row.original.period_type === "month" ? 1 : 2)}>
-                                                                    ✏️
-                                                                </span>
-                                                                <span className="icon-button" title="削除" onClick={() => deleteIncome(row.original.id)}>
-                                                                    ❌
-                                                                </span>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <div className="flex justify-end space-x-2">
+                                                                <Button
+                                                                    onClick={() => openUpdateModal(row.original.id, row.getValue("name"), row.original.category_id, row.getValue("amount"), row.getValue("payment_day"), row.getValue("payment_month"), row.getValue("period_start_date"), row.getValue("period_end_date"), row.original.period_type === "month" ? 1 : 2)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => deleteIncome(row.original.id)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-red-500 hover:text-red-700"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                 ))
                                         ) : (
-                                            <tr className="bg-white border-b">
-                                                <td colSpan={9} className="px-6 py-4 text-center font-medium text-gray-900">
-                                                    データがありません。右上の ➕ から固定収入を登録してください。
+                                            <tr>
+                                                <td colSpan={9} className="px-6 py-12 text-center">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        データがありません。上の「固定収入追加」ボタンから固定収入を登録してください。
+                                                    </div>
                                                 </td>
                                             </tr>
                                         )}
                                     </tbody>
                                 </table>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
+            </div>
             </AuthenticatedLayout>
 
             <div

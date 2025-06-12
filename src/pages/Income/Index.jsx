@@ -14,6 +14,7 @@ import {
 import { incomeService } from "../../api/services/incomeService";
 import { categoryService } from "../../api/services/categoryService";
 import { useAuth } from "../../contexts/AuthContext";
+import { Button } from "../../components/ui/button";
 
 export default function Income() {
     const { user } = useAuth();
@@ -169,16 +170,39 @@ export default function Income() {
         () => [
         columnHelper.accessor("name", {
             header: "収入名",
-            cell: (info) => info.getValue(),
+            cell: (info) => {
+                const value = info.getValue();
+                const truncatedValue = value && value.length > 20 ? value.substring(0, 20) + '...' : value;
+                return (
+                    <div title={value} className="max-w-xs">
+                        {truncatedValue}
+                    </div>
+                );
+            },
         }),
         columnHelper.accessor("amount", {
             header: "金額",
-            cell: (info) => info.getValue(),
+            cell: (info) => {
+                const value = info.getValue();
+                return (
+                    <div className="text-left">
+                        {value ? value.toLocaleString() : 0}円
+                    </div>
+                );
+            },
             sortingFn: "basic",
         }),
         columnHelper.accessor("category_name", {
             header: "カテゴリー",
-            cell: (info) => info.getValue(),
+            cell: (info) => {
+                const value = info.getValue();
+                const truncatedValue = value && value.length > 15 ? value.substring(0, 15) + '...' : value;
+                return (
+                    <div title={value} className="max-w-xs">
+                        {truncatedValue}
+                    </div>
+                );
+            },
             sortingFn: "basic",
         }),
         ],
@@ -201,22 +225,39 @@ export default function Income() {
     return (
         <AuthenticatedLayout
             user={user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">収入管理</h2>}
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    収入管理
+                </h2>
+            }
         >
-            <div className='flex flex-col min-h-screen'>
-                <div className="w-5/6 mx-auto my-3 flex-1 relative sm:justify-center bg-dots-darker bg-center bg-gray-100 selection:text-white">
-                    <div className='container'>
-                        <div className="mx-auto mt-3">
-                            <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                                <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-                                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                    {table.getHeaderGroups().map((headerGroup) => (
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6 text-gray-900">
+                            <Button
+                                onClick={openAddModal}
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+                            >
+                                <PlusCircle className="w-4 h-4 mr-2" />
+                                収入追加
+                            </Button>
+
+                            {isLoading ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                </div>
+                            ) : (
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        {table.getHeaderGroups().map((headerGroup) => (
                                             <tr key={headerGroup.id}>
                                                 {headerGroup.headers.map((header) => (
                                                     <th
                                                         key={header.id}
                                                         onClick={header.column.getToggleSortingHandler()}
-                                                        className="cursor-pointer border px-4 py-2"
+                                                        scope="col"
+                                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                                     >
                                                         {header.isPlaceholder
                                                         ? null
@@ -227,76 +268,65 @@ export default function Income() {
                                                         }[header.column.getIsSorted()] ?? null}
                                                     </th>
                                                 ))}
-                                                <th className='w-10'>
-                                                    <div className="flex justify-center items-center">
-                                                        <button onClick={openAddModal}>
-                                                            <PlusCircle className="h-5 w-5" />
-                                                        </button>
-                                                    </div>
+                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                                    操作
                                                 </th>
                                             </tr>
                                         ))}
                                     </thead>
-                                    <tbody>
-                                    {isLoading ? (
-                                        <tr className="bg-white border-b">
-                                            <td colSpan={4} className="px-6 py-12 text-center">
-                                                <div className="flex justify-center items-center">
-                                                    <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : table.getRowModel().rows.length > 0 ? (
-                                        table.getRowModel().rows.map((row) => (
-                                            <tr
-                                                key={row.id}
-                                                className={
-                                                    row.index % 2 === 0
-                                                        ? "bg-white border-b"
-                                                        : "bg-gray-100 border-b"
-                                                }
-                                            >
-                                                {row.getVisibleCells().map((cell) => (
-                                                    <td
-                                                        key={cell.id}
-                                                        className="border px-4 py-2"
-                                                    >
-                                                        {cell.column.columnDef.cell(cell)}
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {table.getRowModel().rows.length > 0 ? (
+                                            table.getRowModel().rows.map((row) => (
+                                                <tr key={row.id} className="hover:bg-gray-50">
+                                                    {row.getVisibleCells().map((cell) => (
+                                                        <td
+                                                            key={cell.id}
+                                                            className="px-6 py-4 whitespace-nowrap"
+                                                        >
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {cell.column.columnDef.cell(cell)}
+                                                            </div>
+                                                        </td>
+                                                    ))}
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <div className="flex justify-end space-x-2">
+                                                            <Button
+                                                                onClick={() => openUpdateModal(
+                                                                    row.original.id || 0,
+                                                                    row.original.name || '',
+                                                                    row.original.category_id || 0,
+                                                                    row.original.amount || 0,
+                                                                    row.original.date || null
+                                                                )}
+                                                                variant="outline"
+                                                                size="sm"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => deleteIncome(row.original.id || 0)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-500 hover:text-red-700"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     </td>
-                                                ))}
-                                                <td className="w-10 p-2 border">
-                                                    <div className="flex justify-center items-center">
-                                                        <button
-                                                            onClick={() => openUpdateModal(
-                                                                row.original.id || 0,
-                                                                row.original.name || '',
-                                                                row.original.category_id || 0,
-                                                                row.original.amount || 0,
-                                                                row.original.date || null
-                                                            )}
-                                                            className="mr-2"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => deleteIncome(row.original.id || 0)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </button>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-12 text-center">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        データがありません。上の「収入追加」ボタンから収入を登録してください。
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr className="bg-white border-b">
-                                            <td colSpan={4} className="px-6 py-4 text-center font-medium text-gray-900">
-                                                データがありません。右上の ➕ から固定収入を登録してください。
-                                            </td>
-                                        </tr>
-                                    )}
+                                        )}
                                     </tbody>
                                 </table>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
