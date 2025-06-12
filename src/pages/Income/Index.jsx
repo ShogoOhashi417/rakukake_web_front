@@ -205,6 +205,19 @@ export default function Income() {
             },
             sortingFn: "basic",
         }),
+        columnHelper.accessor("calendar_date", {
+            header: "日時",
+            cell: (info) => {
+                const value = info.getValue();
+                if (!value) return "-";
+                try {
+                    return format(new Date(value), "yyyy/MM/dd");
+                } catch {
+                    return value;
+                }
+            },
+            sortingFn: "basic",
+        }),
         ],
         []
     );
@@ -296,7 +309,7 @@ export default function Income() {
                                                                     row.original.name || '',
                                                                     row.original.category_id || 0,
                                                                     row.original.amount || 0,
-                                                                    row.original.date || null
+                                                                    row.original.calendar_date || null
                                                                 )}
                                                                 variant="outline"
                                                                 size="sm"
@@ -317,7 +330,7 @@ export default function Income() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={4} className="px-6 py-12 text-center">
+                                                <td colSpan={5} className="px-6 py-12 text-center">
                                                     <div className="text-sm font-medium text-gray-900">
                                                         データがありません。上の「収入追加」ボタンから収入を登録してください。
                                                     </div>

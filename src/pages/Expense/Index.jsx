@@ -263,6 +263,13 @@ export default function Expense() {
                                                 >
                                                     カテゴリー{getSortIcon('category_name')}
                                                 </th>
+                                                <th 
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                                                    onClick={() => sortData('calendar_date')}
+                                                >
+                                                    日時{getSortIcon('calendar_date')}
+                                                </th>
                                                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     操作
                                                 </th>
@@ -288,6 +295,11 @@ export default function Expense() {
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="text-sm font-medium text-gray-900 max-w-xs" title={item.category_name}>
                                                                 {item.category_name && item.category_name.length > 15 ? item.category_name.substring(0, 15) + '...' : item.category_name}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {item.calendar_date ? format(new Date(item.calendar_date), "yyyy/MM/dd") : "-"}
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -325,7 +337,7 @@ export default function Expense() {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                                    <td colSpan={5} className="px-6 py-12 text-center">
                                                         <div className="text-sm font-medium text-gray-900">
                                                             データがありません。上の「支出追加」ボタンから支出を登録してください。
                                                         </div>
