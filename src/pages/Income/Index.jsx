@@ -170,16 +170,39 @@ export default function Income() {
         () => [
         columnHelper.accessor("name", {
             header: "収入名",
-            cell: (info) => info.getValue(),
+            cell: (info) => {
+                const value = info.getValue();
+                const truncatedValue = value && value.length > 20 ? value.substring(0, 20) + '...' : value;
+                return (
+                    <div title={value} className="max-w-xs">
+                        {truncatedValue}
+                    </div>
+                );
+            },
         }),
         columnHelper.accessor("amount", {
             header: "金額",
-            cell: (info) => info.getValue(),
+            cell: (info) => {
+                const value = info.getValue();
+                return (
+                    <div className="text-left">
+                        {value ? value.toLocaleString() : 0}円
+                    </div>
+                );
+            },
             sortingFn: "basic",
         }),
         columnHelper.accessor("category_name", {
             header: "カテゴリー",
-            cell: (info) => info.getValue(),
+            cell: (info) => {
+                const value = info.getValue();
+                const truncatedValue = value && value.length > 15 ? value.substring(0, 15) + '...' : value;
+                return (
+                    <div title={value} className="max-w-xs">
+                        {truncatedValue}
+                    </div>
+                );
+            },
             sortingFn: "basic",
         }),
         ],
@@ -245,7 +268,7 @@ export default function Income() {
                                                         }[header.column.getIsSorted()] ?? null}
                                                     </th>
                                                 ))}
-                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                                                     操作
                                                 </th>
                                             </tr>
@@ -254,7 +277,7 @@ export default function Income() {
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {table.getRowModel().rows.length > 0 ? (
                                             table.getRowModel().rows.map((row) => (
-                                                <tr key={row.id}>
+                                                <tr key={row.id} className="hover:bg-gray-50">
                                                     {row.getVisibleCells().map((cell) => (
                                                         <td
                                                             key={cell.id}
@@ -266,28 +289,29 @@ export default function Income() {
                                                         </td>
                                                     ))}
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <Button
-                                                            onClick={() => openUpdateModal(
-                                                                row.original.id || 0,
-                                                                row.original.name || '',
-                                                                row.original.category_id || 0,
-                                                                row.original.amount || 0,
-                                                                row.original.date || null
-                                                            )}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="mr-2"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => deleteIncome(row.original.id || 0)}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="text-red-500"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
+                                                        <div className="flex justify-end space-x-2">
+                                                            <Button
+                                                                onClick={() => openUpdateModal(
+                                                                    row.original.id || 0,
+                                                                    row.original.name || '',
+                                                                    row.original.category_id || 0,
+                                                                    row.original.amount || 0,
+                                                                    row.original.date || null
+                                                                )}
+                                                                variant="outline"
+                                                                size="sm"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => deleteIncome(row.original.id || 0)}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-500 hover:text-red-700"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))

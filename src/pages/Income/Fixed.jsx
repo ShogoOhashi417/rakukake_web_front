@@ -282,17 +282,35 @@ export default function Fixed() {
         () => [
             columnHelper.accessor("name", {
                 header: "収入名",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    const truncatedValue = value && value.length > 20 ? value.substring(0, 20) + '...' : value;
+                    return (
+                        <div title={value} className="max-w-xs">
+                            {truncatedValue}
+                        </div>
+                    );
+                },
             }),
             columnHelper.accessor("amount", {
                 header: "金額",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    return (
+                        <div className="text-left">
+                            {value ? value.toLocaleString() : 0}円
+                        </div>
+                    );
+                },
                 sortingFn: "basic",
                 formatValue: (value) => `${value.toLocaleString()}円`,
             }),
             columnHelper.accessor("period_type", {
                 header: "受け取りペース",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    return value === "month" ? "毎月" : "毎年";
+                },
                 sortingFn: "basic",
                 formatValue: (value) => (value === "month" ? "毎月" : "毎年"),
             }),
@@ -343,7 +361,15 @@ export default function Fixed() {
             }),
             columnHelper.accessor("category_name", {
                 header: "カテゴリー",
-                cell: (info) => info.getValue(),
+                cell: (info) => {
+                    const value = info.getValue();
+                    const truncatedValue = value && value.length > 15 ? value.substring(0, 15) + '...' : value;
+                    return (
+                        <div title={value} className="max-w-xs">
+                            {truncatedValue}
+                        </div>
+                    );
+                },
                 sortingFn: "basic",
             }),
         ],
@@ -422,7 +448,7 @@ export default function Fixed() {
                                                             </th>
                                                         )
                                                     )}
-                                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                                                         操作
                                                     </th>
                                                 </tr>
@@ -458,22 +484,23 @@ export default function Fixed() {
                                                                 </td>
                                                             ))}
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                            <Button
-                                                                onClick={() => openUpdateModal(row.original.id, row.getValue("name"), row.original.category_id, row.getValue("amount"), row.getValue("payment_day"), row.getValue("payment_month"), row.getValue("period_start_date"), row.getValue("period_end_date"), row.original.period_type === "month" ? 1 : 2)}
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="mr-2"
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                onClick={() => deleteIncome(row.original.id)}
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="text-red-500"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
+                                                            <div className="flex justify-end space-x-2">
+                                                                <Button
+                                                                    onClick={() => openUpdateModal(row.original.id, row.getValue("name"), row.original.category_id, row.getValue("amount"), row.getValue("payment_day"), row.getValue("payment_month"), row.getValue("period_start_date"), row.getValue("period_end_date"), row.original.period_type === "month" ? 1 : 2)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => deleteIncome(row.original.id)}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-red-500 hover:text-red-700"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))

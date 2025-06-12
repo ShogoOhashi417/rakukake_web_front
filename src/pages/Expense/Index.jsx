@@ -276,49 +276,50 @@ export default function Expense() {
                                                         className="hover:bg-gray-50"
                                                     >
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {item.name}
+                                                            <div className="text-sm font-medium text-gray-900 max-w-xs" title={item.name}>
+                                                                {item.name && item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name}
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {item.amount}
+                                                            <div className="text-sm font-medium text-gray-900 text-left">
+                                                                {item.amount ? item.amount.toLocaleString() : 0}円
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {item.category_name}
+                                                            <div className="text-sm font-medium text-gray-900 max-w-xs" title={item.category_name}>
+                                                                {item.category_name && item.category_name.length > 15 ? item.category_name.substring(0, 15) + '...' : item.category_name}
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                            <Button
-                                                                onClick={() =>
-                                                                    openUpdateModal(
-                                                                        item.id,
-                                                                        item.name,
-                                                                        item.category_id,
-                                                                        item.amount,
-                                                                        item.calendar_date
-                                                                    )
-                                                                }
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="mr-2"
-                                                            >
-                                                                <Edit className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button
-                                                                onClick={() =>
-                                                                    deleteExpenditure(
-                                                                        item.id
-                                                                    )
-                                                                }
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="text-red-500"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
+                                                            <div className="flex justify-end space-x-2">
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        openUpdateModal(
+                                                                            item.id,
+                                                                            item.name,
+                                                                            item.category_id,
+                                                                            item.amount,
+                                                                            item.calendar_date
+                                                                        )
+                                                                    }
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() =>
+                                                                        deleteExpenditure(
+                                                                            item.id
+                                                                        )
+                                                                    }
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-red-500 hover:text-red-700"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
