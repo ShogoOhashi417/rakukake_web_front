@@ -10,6 +10,7 @@ import axios from "axios";
 import { categoryService } from "../../api/services/categoryService";
 import { expenditureService } from "../../api/services/expenditureService";
 import { useAuth } from "../../contexts/AuthContext";
+import { Button } from "../../components/ui/button";
 
 export default function Expense() {
     const { user } = useAuth();
@@ -221,104 +222,118 @@ export default function Expense() {
                     </h2>
                 }
             >
-                <div className="flex flex-col min-h-screen">
-                    <div className=" w-5/6 mx-auto my-3 flex-1 relative sm:justify-center bg-dots-darker bg-center bg-gray-100 selection:text-white">
-                        <div className="container">
-                            <div className="mx-auto mt-3">
-                                <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                                    <table className="w-full text-sm text-left rtl:text-right text-gray-500">
-                                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                <div className="py-12">
+                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                            <div className="p-6 text-gray-900">
+                                <Button
+                                    onClick={openAddModal}
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+                                >
+                                    <PlusCircle className="w-4 h-4 mr-2" />
+                                    支出追加
+                                </Button>
+
+                                {isLoading ? (
+                                    <div className="flex justify-center items-center py-12">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
+                                    </div>
+                                ) : (
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
                                             <tr>
                                                 <th 
-                                                    className="cursor-pointer border px-4 py-2"
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                                     onClick={() => sortData('name')}
                                                 >
                                                     支出名{getSortIcon('name')}
                                                 </th>
                                                 <th 
-                                                    className="cursor-pointer border px-4 py-2"
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                                     onClick={() => sortData('amount')}
                                                 >
                                                     金額{getSortIcon('amount')}
                                                 </th>
                                                 <th 
-                                                    className="cursor-pointer border px-4 py-2"
+                                                    scope="col"
+                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                                     onClick={() => sortData('category_name')}
                                                 >
                                                     カテゴリー{getSortIcon('category_name')}
                                                 </th>
-                                                <th className="w-10 border">
-                                                    <div className="flex justify-center items-center">
-                                                        <button onClick={openAddModal}>
-                                                            <PlusCircle className="h-5 w-5" />
-                                                        </button>
-                                                    </div>
+                                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    操作
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {isLoading ? (
-                                                <tr className="bg-white border-b">
-                                                    <td colSpan={4} className="px-6 py-12 text-center">
-                                                        <div className="flex justify-center items-center">
-                                                            <div className="animate-spin rounded-full h-12 w-12 border-8 border-gray-200 border-t-blue-500"></div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ) : expenditureInfoList.length > 0 ? (
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {expenditureInfoList.length > 0 ? (
                                                 expenditureInfoList.map((item, index) => (
                                                     <tr
                                                         key={index}
-                                                        className={index % 2 === 0 ? "bg-white border-b" : "bg-gray-100 border-b"}
+                                                        className="hover:bg-gray-50"
                                                     >
-                                                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                                            {item.name}
-                                                        </td>
-                                                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                                            {item.amount}
-                                                        </td>
-                                                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                                            {item.category_name}
-                                                        </td>
-                                                        <td className="w-10 p-2 border">
-                                                            <div className="flex justify-center items-center gap-1">
-                                                                <button
-                                                                    className="mr-2"
-                                                                    onClick={() =>
-                                                                        openUpdateModal(
-                                                                            item.id,
-                                                                            item.name,
-                                                                            item.category_id,
-                                                                            item.amount,
-                                                                            item.calendar_date
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Edit className="h-4 w-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() =>
-                                                                        deleteExpenditure(
-                                                                            item.id
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                                </button>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {item.name}
                                                             </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {item.amount}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {item.category_name}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <Button
+                                                                onClick={() =>
+                                                                    openUpdateModal(
+                                                                        item.id,
+                                                                        item.name,
+                                                                        item.category_id,
+                                                                        item.amount,
+                                                                        item.calendar_date
+                                                                    )
+                                                                }
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="mr-2"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() =>
+                                                                    deleteExpenditure(
+                                                                        item.id
+                                                                    )
+                                                                }
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="text-red-500"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
                                                         </td>
                                                     </tr>
                                                 ))
                                             ) : (
-                                                <tr className="bg-white border-b">
-                                                    <td colSpan={4} className="px-6 py-4 text-center font-medium text-gray-900">
-                                                        データがありません。右上の + から支出を登録してください。
+                                                <tr>
+                                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            データがありません。上の「支出追加」ボタンから支出を登録してください。
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             )}
                                         </tbody>
                                     </table>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
