@@ -1,6 +1,6 @@
 import React from "react";
 import { useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
@@ -373,6 +373,7 @@ export default function Fixed() {
                     </h2>
                 }
             >
+            <div className='flex flex-col min-h-screen'>
                 <div className="w-5/6 mx-auto my-3 flex-1 relative sm:justify-center bg-gray-100 selection:text-white">
                     <div className="container">
                         <div className="mx-auto mt-3">
@@ -407,11 +408,11 @@ export default function Fixed() {
                                                             </th>
                                                         )
                                                     )}
-                                                    <th className="w-10">
+                                                    <th className="w-10 border">
                                                         <div className="flex justify-center items-center">
-                                                            <span className="icon-button" title="追加" onClick={openAddModal}>
-                                                                ➕
-                                                            </span>
+                                                            <button onClick={openAddModal}>
+                                                                <PlusCircle className="h-5 w-5" />
+                                                            </button>
                                                         </div>
                                                     </th>
                                                 </tr>
@@ -453,13 +454,18 @@ export default function Fixed() {
                                                                 </td>
                                                             ))}
                                                         <td>
-                                                            <div className="flex justify-center items-center gap-1">
-                                                                <span className="icon-button" title="編集" onClick={() => openUpdateModal(row.original.id, row.getValue("name"), row.original.category_id, row.getValue("amount"), row.getValue("payment_day"), row.getValue("payment_month"), row.getValue("period_start_date"), row.getValue("period_end_date"), row.original.period_type === "month" ? 1 : 2)}>
-                                                                    ✏️
-                                                                </span>
-                                                                <span className="icon-button" title="削除" onClick={() => deleteIncome(row.original.id)}>
-                                                                    ❌
-                                                                </span>
+                                                            <div className="flex justify-center items-center">
+                                                                <button
+                                                                    onClick={() => openUpdateModal(row.original.id, row.getValue("name"), row.original.category_id, row.getValue("amount"), row.getValue("payment_day"), row.getValue("payment_month"), row.getValue("period_start_date"), row.getValue("period_end_date"), row.original.period_type === "month" ? 1 : 2)}
+                                                                    className="mr-2"
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => deleteIncome(row.original.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                                                </button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -477,6 +483,7 @@ export default function Fixed() {
                         </div>
                     </div>
                 </div>
+            </div>
             </AuthenticatedLayout>
 
             <div

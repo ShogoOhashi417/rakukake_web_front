@@ -201,7 +201,11 @@ export default function Income() {
     return (
         <AuthenticatedLayout
             user={user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">収入管理</h2>}
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    収入管理
+                </h2>
+            }
         >
             <div className='flex flex-col min-h-screen'>
                 <div className="w-5/6 mx-auto my-3 flex-1 relative sm:justify-center bg-dots-darker bg-center bg-gray-100 selection:text-white">
@@ -227,7 +231,7 @@ export default function Income() {
                                                         }[header.column.getIsSorted()] ?? null}
                                                     </th>
                                                 ))}
-                                                <th className='w-10'>
+                                                <th className='w-10 border'>
                                                     <div className="flex justify-center items-center">
                                                         <button onClick={openAddModal}>
                                                             <PlusCircle className="h-5 w-5" />

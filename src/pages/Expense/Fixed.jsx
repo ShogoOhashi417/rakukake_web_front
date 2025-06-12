@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRef } from "react";
 import AuthenticatedLayout from "../../components/AuthenticatedLayout";
 import DatePicker from "react-datepicker";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
@@ -350,11 +351,11 @@ export default function FixedExpense() {
                                                                 </th>
                                                             )
                                                         )}
-                                                        <th className="w-10">
+                                                        <th className="w-10 border">
                                                             <div className="flex justify-center items-center">
-                                                                <span className="icon-button" title="追加" onClick={openAddModal}>
-                                                                    ➕
-                                                                </span>
+                                                                <button onClick={openAddModal}>
+                                                                    <PlusCircle className="h-5 w-5" />
+                                                                </button>
                                                             </div>
                                                         </th>
                                                     </tr>
@@ -396,10 +397,8 @@ export default function FixedExpense() {
                                                                     </td>
                                                                 ))}
                                                             <td>
-                                                                <div className="flex justify-center items-center gap-1">
-                                                                    <span
-                                                                        className="icon-button"
-                                                                        title="編集" 
+                                                                <div className="flex justify-center items-center">
+                                                                    <button
                                                                         onClick={() =>
                                                                             openUpdateModal(
                                                                                 row
@@ -428,20 +427,19 @@ export default function FixedExpense() {
                                                                                 )
                                                                             )
                                                                         }
+                                                                        className="mr-2"
                                                                     >
-                                                                        ✏️
-                                                                    </span>
-                                                                    <span
-                                                                        className="icon-button"
-                                                                        title="削除"
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </button>
+                                                                    <button
                                                                         onClick={() =>
                                                                             deleteExpenditure(
                                                                                 row.original.expenditure_id
                                                                             )
                                                                         }
                                                                     >
-                                                                        ❌
-                                                                    </span>
+                                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                                    </button>
                                                                 </div>
                                                             </td>
                                                         </tr>

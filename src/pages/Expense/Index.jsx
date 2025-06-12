@@ -247,7 +247,7 @@ export default function Expense() {
                                                 >
                                                     カテゴリー{getSortIcon('category_name')}
                                                 </th>
-                                                <th className="w-10">
+                                                <th className="w-10 border">
                                                     <div className="flex justify-center items-center">
                                                         <button onClick={openAddModal}>
                                                             <PlusCircle className="h-5 w-5" />
