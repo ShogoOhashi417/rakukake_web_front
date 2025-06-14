@@ -15,6 +15,7 @@ import { incomeService } from "../../api/services/incomeService";
 import { categoryService } from "../../api/services/categoryService";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/button";
+import FilterStatus from "../../components/FilterStatus";
 
 export default function Income() {
     const { user } = useAuth();
@@ -26,6 +27,26 @@ export default function Income() {
     
     const [incomeInfoList, setincomeInfoList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [selectedCategoryId, setSelectedCategoryId] = useState('');
+    const [filteredIncomeList, setFilteredIncomeList] = useState([]);
+
+    const filterIncomeByCategory = (incomeList, categoryId) => {
+        if (!categoryId || categoryId === '') {
+            return incomeList;
+        }
+        return incomeList.filter(income => income.category_id === parseInt(categoryId));
+    };
+
+    const handleCategoryChange = (event) => {
+        const categoryId = event.target.value;
+        setSelectedCategoryId(categoryId);
+    };
+
+    useEffect(() => {
+        const filtered = filterIncomeByCategory(incomeInfoList, selectedCategoryId);
+        setFilteredIncomeList(filtered);
+    }, [incomeInfoList, selectedCategoryId]);
 
     const getInfo = async () => {
         setIsLoading(true);
@@ -162,8 +183,8 @@ export default function Income() {
     const columnHelper = createColumnHelper();
 
     const data = React.useMemo(
-        () => incomeInfoList || [],
-        [incomeInfoList]
+        () => filteredIncomeList || [],
+        [filteredIncomeList]
     );
 
     const columns = React.useMemo(
@@ -248,13 +269,41 @@ export default function Income() {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <Button
-                                onClick={openAddModal}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
-                            >
-                                <PlusCircle className="w-4 h-4 mr-2" />
-                                収入追加
-                            </Button>
+                            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                                <Button
+                                    onClick={openAddModal}
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                >
+                                    <PlusCircle className="w-4 h-4 mr-2" />
+                                    収入追加
+                                </Button>
+                                
+                                <div className="flex items-center gap-2">
+                                    <label htmlFor="categoryFilter" className="text-sm font-medium text-gray-700">
+                                        カテゴリー絞り込み:
+                                    </label>
+                                    <select
+                                        id="categoryFilter"
+                                        value={selectedCategoryId}
+                                        onChange={handleCategoryChange}
+                                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 min-w-[150px]"
+                                    >
+                                        <option value="">すべて</option>
+                                        {incomeCategoryInfoList.map((category) => (
+                                            <option key={category.id} value={category.id}>
+                                                {category.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <FilterStatus 
+                                selectedCategoryId={selectedCategoryId}
+                                incomeCategoryInfoList={incomeCategoryInfoList}
+                                filteredIncomeList={filteredIncomeList}
+                                onClearFilter={() => setSelectedCategoryId('')}
+                            />
 
                             {isLoading ? (
                                 <div className="flex justify-center items-center py-12">
@@ -332,7 +381,10 @@ export default function Income() {
                                             <tr>
                                                 <td colSpan={5} className="px-6 py-12 text-center">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        データがありません。上の「収入追加」ボタンから収入を登録してください。
+                                                        {selectedCategoryId ? 
+                                                            "選択されたカテゴリーにデータがありません。" :
+                                                            "データがありません。上の「収入追加」ボタンから収入を登録してください。"
+                                                        }
                                                     </div>
                                                 </td>
                                             </tr>
