@@ -11,6 +11,7 @@ import { categoryService } from "../../api/services/categoryService";
 import { expenditureService } from "../../api/services/expenditureService";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/button";
+import FilterStatus from "../../components/FilterStatus";
 
 export default function Expense() {
     const { user } = useAuth();
@@ -23,6 +24,30 @@ export default function Expense() {
     
     const [expenditureInfoList, setExpenditureInfoList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // カテゴリー絞り込み用の状態変数を追加
+    const [selectedCategoryId, setSelectedCategoryId] = useState('');
+    const [filteredExpenditureList, setFilteredExpenditureList] = useState([]);
+
+    // フィルタリング関数
+    const filterExpenditureByCategory = (expenditureList, categoryId) => {
+        if (!categoryId || categoryId === '') {
+            return expenditureList;
+        }
+        return expenditureList.filter(expenditure => expenditure.category_id === parseInt(categoryId));
+    };
+
+    // カテゴリー選択時のハンドラー
+    const handleCategoryChange = (event) => {
+        const categoryId = event.target.value;
+        setSelectedCategoryId(categoryId);
+    };
+
+    // フィルタリング適用のuseEffect
+    useEffect(() => {
+        const filtered = filterExpenditureByCategory(expenditureInfoList, selectedCategoryId);
+        setFilteredExpenditureList(filtered);
+    }, [expenditureInfoList, selectedCategoryId]);
 
     const [expenditureId, setExpenditureId] = useState(0);
     const [expenditureName, setExpenditureName] = useState("");
@@ -48,13 +73,13 @@ export default function Expense() {
         setSortField(field);
         setSortDirection(newDirection);
         
-        const sortedData = [...expenditureInfoList].sort((a, b) => {
+        const sortedData = [...filteredExpenditureList].sort((a, b) => {
             if (a[field] < b[field]) return newDirection === 'asc' ? -1 : 1;
             if (a[field] > b[field]) return newDirection === 'asc' ? 1 : -1;
             return 0;
         });
         
-        setExpenditureInfoList(sortedData);
+        setFilteredExpenditureList(sortedData);
     };
 
     const getSortIcon = (field) => {
@@ -226,13 +251,41 @@ export default function Expense() {
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div className="p-6 text-gray-900">
-                                <Button
-                                    onClick={openAddModal}
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
-                                >
-                                    <PlusCircle className="w-4 h-4 mr-2" />
-                                    支出追加
-                                </Button>
+                                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                                    <Button
+                                        onClick={openAddModal}
+                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                    >
+                                        <PlusCircle className="w-4 h-4 mr-2" />
+                                        支出追加
+                                    </Button>
+                                    
+                                    <div className="flex items-center gap-2">
+                                        <label htmlFor="categoryFilter" className="text-sm font-medium text-gray-700">
+                                            カテゴリー絞り込み:
+                                        </label>
+                                        <select
+                                            id="categoryFilter"
+                                            value={selectedCategoryId}
+                                            onChange={handleCategoryChange}
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 min-w-[150px]"
+                                        >
+                                            <option value="">すべて</option>
+                                            {expenditureCategoryInfoList.map((category) => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <FilterStatus 
+                                    selectedCategoryId={selectedCategoryId}
+                                    incomeCategoryInfoList={expenditureCategoryInfoList}
+                                    filteredIncomeList={filteredExpenditureList}
+                                    onClearFilter={() => setSelectedCategoryId('')}
+                                />
 
                                 {isLoading ? (
                                     <div className="flex justify-center items-center py-12">
@@ -276,8 +329,8 @@ export default function Expense() {
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {expenditureInfoList.length > 0 ? (
-                                                expenditureInfoList.map((item, index) => (
+                                            {filteredExpenditureList.length > 0 ? (
+                                                filteredExpenditureList.map((item, index) => (
                                                     <tr
                                                         key={index}
                                                         className="hover:bg-gray-50"
@@ -339,7 +392,10 @@ export default function Expense() {
                                                 <tr>
                                                     <td colSpan={5} className="px-6 py-12 text-center">
                                                         <div className="text-sm font-medium text-gray-900">
-                                                            データがありません。上の「支出追加」ボタンから支出を登録してください。
+                                                            {selectedCategoryId ? 
+                                                                "選択されたカテゴリーにデータがありません。" :
+                                                                "データがありません。上の「支出追加」ボタンから支出を登録してください。"
+                                                            }
                                                         </div>
                                                     </td>
                                                 </tr>
