@@ -97,20 +97,79 @@ export default function Saving() {
         }
     };
 
+    const [incomeInfoList, setIncomeInfoList] = useState({});
+    const [expenditureInfoList, setExpenditureInfoList] = useState({});
+    const [combinedChartOptions, setCombinedChartOptions] = useState({});
+    const [showPrediction, setShowPrediction] = useState(false);
+    const [predictionData, setPredictionData] = useState({
+        incomeDataList: {},
+        expenseDataList: {},
+        futureDateList: []
+    });
+
     const fetchChart = async () => {
         setIsLoading(true);
         try {
             const response = await reportService.getSavingReport({
                 start_date: dateList[0] + '-01',
-                end_date: getMonthEndDate(dateList[dateList.length - 1])
+                end_date: getMonthEndDate(dateList[dateList.length - 1]),
+                include_prediction: showPrediction,
+                prediction_months: dateList.length
             });
 
-            setIncomeInfoList(response.incomeDataList.category_to_amount_list || {});
-            setExpenditureInfoList(response.expenseDataList.category_to_amount_list || {});
+            const actualIncomeData = response.incomeDataList.category_to_amount_list || {};
+            const actualExpenseData = response.expenseDataList.category_to_amount_list || {};
+            
+            const futureDateList = [];
+            const periodLength = dateList.length;
+            for (let i = 1; i <= periodLength; i++) {
+                futureDateList.push(getMonth(thisYear, thisMonth, i));
+            }
+            
+            const combinedIncomeData = {
+                ...actualIncomeData,
+                "給与": {
+                    ...actualIncomeData["給与"] || {},
+                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 300000 }), {})
+                },
+                "副業": {
+                    ...actualIncomeData["副業"] || {},
+                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 50000 }), {})
+                }
+            };
+            
+            const combinedExpenseData = {
+                ...actualExpenseData,
+                "食費": {
+                    ...actualExpenseData["食費"] || {},
+                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 80000 }), {})
+                },
+                "交通費": {
+                    ...actualExpenseData["交通費"] || {},
+                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 20000 }), {})
+                },
+                "娯楽費": {
+                    ...actualExpenseData["娯楽費"] || {},
+                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 30000 }), {})
+                }
+            };
+
+            setIncomeInfoList(combinedIncomeData);
+            setExpenditureInfoList(combinedExpenseData);
+            setPredictionData({
+                incomeDataList: {},
+                expenseDataList: {},
+                futureDateList: futureDateList
+            });
         } catch (error) {
             console.error('Failed to fetch chart data:', error);
             setIncomeInfoList({});
             setExpenditureInfoList({});
+            setPredictionData({
+                incomeDataList: {},
+                expenseDataList: {},
+                futureDateList: []
+            });
         } finally {
             setIsLoading(false);
         }
@@ -126,10 +185,6 @@ export default function Saving() {
         setRelativePeriod(event.target.value);
     }
 
-    const [incomeInfoList, setIncomeInfoList] = useState({});
-    const [expenditureInfoList, setExpenditureInfoList] = useState({});
-    const [combinedChartOptions, setCombinedChartOptions] = useState({});
-
     useEffect(() => {
         fetchChart();
     }, [dateList]);
@@ -140,10 +195,14 @@ export default function Saving() {
         const balanceData = [];
         const savingsData = [];
         
+        const predictionIncomeData = [];
+        const predictionExpenditureData = [];
+        const predictionSavingsData = [];
+        
         let currentSavings = INITIAL_SAVINGS;
 
         const sortedDateList = [...dateList].sort();
-
+        
         sortedDateList.forEach((date) => {
             let totalIncome = 0;
             let totalExpenditure = 0;
@@ -169,18 +228,143 @@ export default function Saving() {
             savingsData.push(currentSavings);
         });
 
-        const maxIncomeValue = Math.max(...incomeData);
-        const maxExpenditureValue = Math.max(...expenditureData);
+        const futureDateList = predictionData.futureDateList || [];
+        if (showPrediction && futureDateList.length > 0) {
+            futureDateList.forEach((date) => {
+                let totalPredictionIncome = 0;
+                let totalPredictionExpenditure = 0;
+
+                Object.values(incomeInfoList).forEach((dateToAmountList) => {
+                    if (dateToAmountList[date]) {
+                        totalPredictionIncome += parseInt(dateToAmountList[date]) || 0;
+                    }
+                });
+
+                Object.values(expenditureInfoList).forEach((dateToAmountList) => {
+                    if (dateToAmountList[date]) {
+                        totalPredictionExpenditure += parseInt(dateToAmountList[date]) || 0;
+                    }
+                });
+
+                predictionIncomeData.push(totalPredictionIncome);
+                predictionExpenditureData.push(totalPredictionExpenditure);
+                const monthlyPredictionBalance = totalPredictionIncome - totalPredictionExpenditure;
+                
+                currentSavings += monthlyPredictionBalance;
+                predictionSavingsData.push(currentSavings);
+            });
+        }
+
+        const allCategories = showPrediction ? [...sortedDateList, ...futureDateList] : sortedDateList;
+        
+        const maxIncomeValue = Math.max(...incomeData, ...(showPrediction ? predictionIncomeData : []));
+        const maxExpenditureValue = Math.max(...expenditureData, ...(showPrediction ? predictionExpenditureData : []));
         const maxIncomeExpenditure = Math.max(maxIncomeValue, maxExpenditureValue);
         
-        const maxSavingsValue = Math.max(...savingsData);
+        const maxSavingsValue = Math.max(...savingsData, ...(showPrediction ? predictionSavingsData : []));
 
         const incomeColor = "#2E86C1";
         const expenditureColor = "#D6EAF8";
         const savingsColor = "#3498DB";
+        const predictionIncomeColor = "#85C1E9";
+        const predictionExpenditureColor = "#EBF5FB";
+        const predictionSavingsColor = "#AED6F1";
 
-        const incomeExpenditureAxisMax = Math.ceil(maxIncomeExpenditure * 5 / 100000) * 100000;
-        const savingsAxisMax = Math.ceil(maxSavingsValue * 1.0 / 100000) * 100000;
+        const incomeExpenditureAxisMax = Math.ceil(maxIncomeExpenditure * 1.1 / 100000) * 100000;
+        const savingsAxisMax = Math.ceil(maxSavingsValue * 1.1 / 100000) * 100000;
+
+        const series = [
+            {
+                name: '収入',
+                type: 'column',
+                color: incomeColor,
+                data: incomeData,
+                yAxis: 1,
+                tooltip: {
+                    valueSuffix: '円'
+                },
+                pointPlacement: -0.1
+            },
+            {
+                name: '支出',
+                type: 'column',
+                color: expenditureColor,
+                data: expenditureData,
+                yAxis: 1,
+                tooltip: {
+                    valueSuffix: '円'
+                },
+                pointPlacement: 0.1
+            },
+            {
+                name: '貯金額',
+                type: 'line',
+                color: savingsColor,
+                data: savingsData,
+                yAxis: 0,
+                tooltip: {
+                    valueSuffix: '円'
+                },
+                marker: {
+                    enabled: true,
+                    radius: 4,
+                    symbol: 'circle',
+                    lineColor: savingsColor,
+                    lineWidth: 2,
+                    fillColor: '#FFFFFF'
+                },
+                lineWidth: 2
+            }
+        ];
+
+        if (showPrediction && predictionIncomeData.length > 0) {
+            series.push(
+                {
+                    name: '収入（予測）',
+                    type: 'column',
+                    color: predictionIncomeColor,
+                    data: Array(incomeData.length).fill(null).concat(predictionIncomeData),
+                    yAxis: 1,
+                    tooltip: {
+                        valueSuffix: '円'
+                    },
+                    pointPlacement: -0.1,
+                    dashStyle: 'Dash'
+                },
+                {
+                    name: '支出（予測）',
+                    type: 'column',
+                    color: predictionExpenditureColor,
+                    data: Array(expenditureData.length).fill(null).concat(predictionExpenditureData),
+                    yAxis: 1,
+                    tooltip: {
+                        valueSuffix: '円'
+                    },
+                    pointPlacement: 0.1,
+                    dashStyle: 'Dash'
+                },
+                {
+                    name: '貯金額（予測）',
+                    type: 'line',
+                    color: predictionSavingsColor,
+                    data: Array(savingsData.length).fill(null).concat(predictionSavingsData),
+                    yAxis: 0,
+                    tooltip: {
+                        valueSuffix: '円'
+                    },
+                    marker: {
+                        enabled: true,
+                        radius: 4,
+                        symbol: 'diamond',
+                        lineColor: predictionSavingsColor,
+                        lineWidth: 2,
+                        fillColor: '#FFFFFF'
+                    },
+                    lineWidth: 2,
+                    dashStyle: 'Dash'
+                }
+            );
+        }
 
         const combinedOptions = {
             chart: {
@@ -190,8 +374,21 @@ export default function Saving() {
                 text: ''
             },
             xAxis: {
-                categories: sortedDateList,
-                crosshair: true
+                categories: allCategories,
+                crosshair: true,
+                plotLines: showPrediction ? [{
+                    color: '#FF0000',
+                    width: 2,
+                    value: sortedDateList.length - 0.5,
+                    dashStyle: 'dash',
+                    label: {
+                        text: '現在',
+                        align: 'center',
+                        style: {
+                            color: '#FF0000'
+                        }
+                    }
+                }] : []
             },
             yAxis: [
                 {
@@ -273,53 +470,11 @@ export default function Saving() {
                     }
                 }
             },
-            series: [
-                {
-                    name: '収入',
-                    type: 'column',
-                    color: incomeColor,
-                    data: incomeData,
-                    yAxis: 1,
-                    tooltip: {
-                        valueSuffix: '円'
-                    },
-                    pointPlacement: -0.05
-                },
-                {
-                    name: '支出',
-                    type: 'column',
-                    color: expenditureColor,
-                    data: expenditureData,
-                    yAxis: 1,
-                    tooltip: {
-                        valueSuffix: '円'
-                    },
-                    pointPlacement: 0.05
-                },
-                {
-                    name: '貯金額',
-                    type: 'line',
-                    color: savingsColor,
-                    data: savingsData,
-                    yAxis: 0,
-                    tooltip: {
-                        valueSuffix: '円'
-                    },
-                    marker: {
-                        enabled: true,
-                        radius: 4,
-                        symbol: 'point',
-                        lineColor: savingsColor,
-                        lineWidth: 2,
-                        fillColor: '#FFFFFF'
-                    },
-                    lineWidth: 2
-                }
-            ]
+            series: series
         };
 
         setCombinedChartOptions(combinedOptions);
-    }, [incomeInfoList, expenditureInfoList, dateList]);
+    }, [incomeInfoList, expenditureInfoList, dateList, showPrediction, predictionData]);
 
     return (
         <AuthenticatedLayout
@@ -335,22 +490,38 @@ export default function Saving() {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
                             <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">
-                                    期間選択
-                                </label>
-                                <select
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    onChange={changeDate}
-                                    defaultValue={THIS_YEAR_PERIOD}
-                                >
-                                    {Array.from(
-                                        relativePeriodList.entries()
-                                    ).map(([key, value]) => (
-                                        <option key={key} value={key}>
-                                            {value}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex-1">
+                                        <label className="block text-gray-700 text-sm font-bold mb-2">
+                                            期間選択
+                                        </label>
+                                        <select
+                                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                            onChange={changeDate}
+                                            defaultValue={THIS_YEAR_PERIOD}
+                                        >
+                                            {Array.from(
+                                                relativePeriodList.entries()
+                                            ).map(([key, value]) => (
+                                                <option key={key} value={key}>
+                                                    {value}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="flex items-center mt-6">
+                                        <input
+                                            type="checkbox"
+                                            id="showPrediction"
+                                            checked={showPrediction}
+                                            onChange={(e) => setShowPrediction(e.target.checked)}
+                                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <label htmlFor="showPrediction" className="text-gray-700 text-sm font-bold">
+                                            予測を表示
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mb-8">
