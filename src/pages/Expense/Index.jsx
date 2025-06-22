@@ -333,25 +333,25 @@ export default function Expense() {
                                                 filteredExpenditureList.map((item, index) => (
                                                     <tr
                                                         key={index}
-                                                        className="hover:bg-gray-50"
+                                                        className={`${item.fixed_expenditure_id ? 'bg-gray-100 text-gray-500' : 'hover:bg-gray-50'}`}
                                                     >
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900 max-w-xs" title={item.name}>
+                                                            <div className={`text-sm font-medium max-w-xs ${item.fixed_expenditure_id ? 'text-gray-500' : 'text-gray-900'}`} title={item.name}>
                                                                 {item.name && item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name}
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900 text-left">
+                                                            <div className={`text-sm font-medium text-left ${item.fixed_expenditure_id ? 'text-gray-500' : 'text-gray-900'}`}>
                                                                 {item.amount ? item.amount.toLocaleString() : 0}円
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900 max-w-xs" title={item.category_name}>
+                                                            <div className={`text-sm font-medium max-w-xs ${item.fixed_expenditure_id ? 'text-gray-500' : 'text-gray-900'}`} title={item.category_name}>
                                                                 {item.category_name && item.category_name.length > 15 ? item.category_name.substring(0, 15) + '...' : item.category_name}
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
-                                                            <div className="text-sm font-medium text-gray-900">
+                                                            <div className={`text-sm font-medium ${item.fixed_expenditure_id ? 'text-gray-500' : 'text-gray-900'}`}>
                                                                 {item.calendar_date ? format(new Date(item.calendar_date), "yyyy/MM/dd") : "-"}
                                                             </div>
                                                         </td>
@@ -369,6 +369,8 @@ export default function Expense() {
                                                                     }
                                                                     variant="outline"
                                                                     size="sm"
+                                                                    disabled={item.fixed_expenditure_id}
+                                                                    className={item.fixed_expenditure_id ? 'opacity-50 cursor-not-allowed' : ''}
                                                                 >
                                                                     <Edit className="h-4 w-4" />
                                                                 </Button>
@@ -380,7 +382,8 @@ export default function Expense() {
                                                                     }
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    className="text-red-500 hover:text-red-700"
+                                                                    className={`text-red-500 hover:text-red-700 ${item.fixed_expenditure_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                    disabled={item.fixed_expenditure_id}
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>

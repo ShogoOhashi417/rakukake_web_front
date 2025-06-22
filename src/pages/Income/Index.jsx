@@ -339,13 +339,13 @@ export default function Income() {
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {table.getRowModel().rows.length > 0 ? (
                                             table.getRowModel().rows.map((row) => (
-                                                <tr key={row.id} className="hover:bg-gray-50">
+                                                <tr key={row.id} className={`${row.original.fixed_income_id ? 'bg-gray-100 text-gray-500' : 'hover:bg-gray-50'}`}>
                                                     {row.getVisibleCells().map((cell) => (
                                                         <td
                                                             key={cell.id}
                                                             className="px-6 py-4 whitespace-nowrap"
                                                         >
-                                                            <div className="text-sm font-medium text-gray-900">
+                                                            <div className={`text-sm font-medium ${row.original.fixed_income_id ? 'text-gray-500' : 'text-gray-900'}`}>
                                                                 {cell.column.columnDef.cell(cell)}
                                                             </div>
                                                         </td>
@@ -362,6 +362,8 @@ export default function Income() {
                                                                 )}
                                                                 variant="outline"
                                                                 size="sm"
+                                                                disabled={row.original.fixed_income_id}
+                                                                className={row.original.fixed_income_id ? 'opacity-50 cursor-not-allowed' : ''}
                                                             >
                                                                 <Edit className="h-4 w-4" />
                                                             </Button>
@@ -369,7 +371,8 @@ export default function Income() {
                                                                 onClick={() => deleteIncome(row.original.id || 0)}
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="text-red-500 hover:text-red-700"
+                                                                className={`text-red-500 hover:text-red-700 ${row.original.fixed_income_id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                disabled={row.original.fixed_income_id}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
