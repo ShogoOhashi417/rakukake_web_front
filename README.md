@@ -1,46 +1,208 @@
-# Getting Started with Create React App
+# らくかけ - シンプルで使いやすい家計簿アプリ
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<br>
 
-## Available Scripts
+## サービス概要
 
-In the project directory, you can run:
+**らくかけ**は、日々の収支を簡単に記録し、あなたの家計をスマートに管理できるWebアプリケーションです。
 
-### `npm start`
+直感的なUIと豊富な分析機能で、家計管理を「楽」に、そして「楽しく」することを目指しています。
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+<br>
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 開発背景・想い
 
-### `npm test`
+家計簿をつけたいと思っても、複雑な機能や面倒な操作で挫折してしまう経験はありませんか？
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+「らくかけ」は、そんな悩みを解決するために開発されました。
 
-### `npm run build`
+- **シンプルさを重視** - 必要な機能だけに絞り、直感的に使える設計
+- **継続しやすさ** - 数タップで簡単に記録できる手軽さ
+- **見える化** - グラフやチャートで支出傾向を一目で把握
+- **目標管理** - 貯金目標の設定と達成状況の追跡
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+<br>
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 主な機能
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| 機能 | 詳細 |
+|------|------|
+| **支出管理** | 日々の支出を簡単に記録・編集・削除 |
+| **収入管理** | 収入の記録と管理 |
+| **固定費管理** | 月次・年次の固定支出・収入を自動計算 |
+| **レポート機能** | グラフやチャートでの支出分析 |
+| **カテゴリ管理** | 支出・収入のカテゴリ分類 |
+| **一括操作** | CSVファイルでの支出データ一括インポート |
+| **貯金予測** | 将来の貯金額をシミュレーション |
 
-### `npm run eject`
+<br>
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 使用技術
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### フロントエンド
+| 技術 | バージョン | 用途 |
+|------|------------|------|
+| React | ^19.1.0 | UIライブラリ |
+| TypeScript | ^4.9.5 | 型安全性の確保 |
+| React Router | ^7.5.3 | ルーティング |
+| Tailwind CSS | ^3.3.0 | スタイリング |
+| Material-UI | ^7.1.0 | UIコンポーネント |
+| Highcharts | ^12.2.0 | グラフ・チャート表示 |
+| React Table | ^8.21.3 | テーブル表示 |
+| React DatePicker | ^8.3.0 | 日付選択 |
+| Axios | ^1.9.0 | HTTP通信 |
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### 開発環境
+| 技術 | バージョン | 用途 |
+|------|------------|------|
+| Node.js | >=18.0.0 | 実行環境 |
+| React Scripts | 5.0.1 | ビルドツール |
+| PostCSS | ^8.4.31 | CSS処理 |
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+<br>
 
-## Learn More
+## セットアップ・起動方法
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 必要な環境
+- Node.js 18.0.0以上
+- npm または yarn
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### インストール手順
+
+1. **リポジトリのクローン**
+```bash
+git clone [repository-url]
+cd frontend
+```
+
+2. **依存関係のインストール**
+```bash
+npm install
+```
+
+3. **開発サーバーの起動**
+```bash
+npm start
+```
+
+4. **ブラウザでアクセス**
+```
+http://localhost:3000
+```
+
+### その他のコマンド
+
+```bash
+# プロダクションビルド
+npm run build
+
+# テストの実行
+npm test
+```
+
+<br>
+
+## 画面構成
+
+### メイン機能画面
+
+| 画面 | 説明 |
+|------|------|
+| **ダッシュボード** | 貯金額の推移と予測をグラフで表示 |
+| **支出管理** | 日々の支出の記録・編集・削除 |
+| **収入管理** | 収入の記録と管理 |
+| **固定費管理** | 月次・年次の固定支出・収入設定 |
+| **レポート** | 支出傾向の分析とグラフ表示 |
+| **カテゴリ管理** | 支出・収入カテゴリの設定 |
+
+### 認証機能
+
+| 画面 | 説明 |
+|------|------|
+| **ログイン** | ユーザー認証 |
+| **新規登録** | アカウント作成 |
+| **プロフィール** | ユーザー情報の編集 |
+
+<br>
+
+## プロジェクト構成
+
+```
+src/
+├── api/                    # API関連
+│   ├── client.ts          # APIクライアント設定
+│   └── services/          # 各種APIサービス
+├── components/            # 再利用可能コンポーネント
+│   ├── ui/               # UIコンポーネント
+│   └── ...
+├── contexts/             # React Context
+├── layouts/              # レイアウトコンポーネント
+├── pages/                # 各ページコンポーネント
+│   ├── Auth/             # 認証関連
+│   ├── Expense/          # 支出管理
+│   ├── Income/           # 収入管理
+│   ├── Report/           # レポート
+│   └── ...
+└── ...
+```
+
+<br>
+
+## 特徴・こだわりポイント
+
+### ユーザビリティ重視
+- **直感的な操作** - 複雑な設定なしですぐに使い始められる
+- **レスポンシブデザイン** - スマートフォンでも快適に利用可能
+- **視覚的な分析** - グラフやチャートで支出傾向を一目で把握
+
+### パフォーマンス最適化
+- **React 19** - 最新のReactを使用した高速レンダリング
+- **TypeScript** - 型安全性によるバグの事前防止
+- **コード分割** - 必要な部分のみを読み込む効率的な設計
+
+### セキュリティ
+- **CSRF保護** - クロスサイトリクエストフォージェリ対策
+- **認証機能** - セキュアなユーザー認証システム
+
+<br>
+
+## 今後の展望
+
+### 機能拡張予定
+- **予算管理機能** - カテゴリ別予算設定と使用状況アラート
+- **データエクスポート** - 詳細なデータ分析用CSV出力機能の拡張
+- **通知機能** - 支出目標達成時のプッシュ通知
+- **多通貨対応** - 海外旅行や外貨取引の記録対応
+
+### UI/UX改善
+- **ダークモード** - 目に優しいダークテーマの追加
+- **カスタマイズ機能** - ユーザー好みのテーマカラー設定
+- **アクセシビリティ向上** - より多くのユーザーが使いやすい設計
+
+### 外部連携
+- **銀行API連携** - 自動的な取引データ取得
+- **レシート読み取り** - OCR技術による支出記録の自動化
+
+<br>
+
+## ライセンス
+
+このプロジェクトは個人開発プロジェクトです。
+
+<br>
+
+## 開発者
+
+家計管理をもっと身近で楽しいものにしたいという想いで開発しています。
+
+ご質問やご提案がございましたら、お気軽にお声かけください。
+
+<br>
+
+---
+
+<div align="center">
+
+**らくかけで、あなたの家計管理を「楽」にしませんか？**
+
+</div>
