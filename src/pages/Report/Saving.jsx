@@ -117,49 +117,12 @@ export default function Saving() {
                 prediction_months: dateList.length
             });
 
-            const actualIncomeData = response.incomeDataList.category_to_amount_list || {};
-            const actualExpenseData = response.expenseDataList.category_to_amount_list || {};
-            
-            const futureDateList = [];
-            const periodLength = dateList.length;
-            for (let i = 1; i <= periodLength; i++) {
-                futureDateList.push(getMonth(thisYear, thisMonth, i));
-            }
-            
-            const combinedIncomeData = {
-                ...actualIncomeData,
-                "給与": {
-                    ...actualIncomeData["給与"] || {},
-                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 300000 }), {})
-                },
-                "副業": {
-                    ...actualIncomeData["副業"] || {},
-                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 50000 }), {})
-                }
-            };
-            
-            const combinedExpenseData = {
-                ...actualExpenseData,
-                "食費": {
-                    ...actualExpenseData["食費"] || {},
-                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 80000 }), {})
-                },
-                "交通費": {
-                    ...actualExpenseData["交通費"] || {},
-                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 20000 }), {})
-                },
-                "娯楽費": {
-                    ...actualExpenseData["娯楽費"] || {},
-                    ...futureDateList.reduce((acc, date) => ({ ...acc, [date]: 30000 }), {})
-                }
-            };
-
-            setIncomeInfoList(combinedIncomeData);
-            setExpenditureInfoList(combinedExpenseData);
+            setIncomeInfoList(response.incomeDataList.category_to_amount_list || {});
+            setExpenditureInfoList(response.expenseDataList.category_to_amount_list || {});
             setPredictionData({
                 incomeDataList: {},
-                expenseDataList: {},
-                futureDateList: futureDateList
+                expenseDataList: response.forecastData.category_to_amount_list || {},
+                futureDateList: []
             });
         } catch (error) {
             console.error('Failed to fetch chart data:', error);
@@ -228,19 +191,20 @@ export default function Saving() {
             savingsData.push(currentSavings);
         });
 
-        const futureDateList = predictionData.futureDateList || [];
+        const futureDateList = [];
+        if (showPrediction && Object.keys(predictionData.expenseDataList).length > 0) {
+            const firstCategory = Object.keys(predictionData.expenseDataList)[0];
+            if (firstCategory) {
+                futureDateList.push(...Object.keys(predictionData.expenseDataList[firstCategory]));
+            }
+        }
+        
         if (showPrediction && futureDateList.length > 0) {
             futureDateList.forEach((date) => {
-                let totalPredictionIncome = 0;
+                let totalPredictionIncome = 5000000; // 収入はダミー（給与300000 + 副業50000）
                 let totalPredictionExpenditure = 0;
 
-                Object.values(incomeInfoList).forEach((dateToAmountList) => {
-                    if (dateToAmountList[date]) {
-                        totalPredictionIncome += parseInt(dateToAmountList[date]) || 0;
-                    }
-                });
-
-                Object.values(expenditureInfoList).forEach((dateToAmountList) => {
+                Object.values(predictionData.expenseDataList).forEach((dateToAmountList) => {
                     if (dateToAmountList[date]) {
                         totalPredictionExpenditure += parseInt(dateToAmountList[date]) || 0;
                     }
