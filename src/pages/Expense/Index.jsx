@@ -5,7 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import ja from "date-fns/locale/ja";
-import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Calendar, X } from "lucide-react";
 import axios from "axios";
 import { categoryService } from "../../api/services/categoryService";
 import { expenditureService } from "../../api/services/expenditureService";
@@ -25,11 +25,11 @@ export default function Expense() {
     const [expenditureInfoList, setExpenditureInfoList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // カテゴリー絞り込み用の状態変数を追加
     const [selectedCategoryId, setSelectedCategoryId] = useState('');
     const [filteredExpenditureList, setFilteredExpenditureList] = useState([]);
+    
+    const [selectedYearMonth, setSelectedYearMonth] = useState('');
 
-    // フィルタリング関数
     const filterExpenditureByCategory = (expenditureList, categoryId) => {
         if (!categoryId || categoryId === '') {
             return expenditureList;
@@ -37,17 +37,42 @@ export default function Expense() {
         return expenditureList.filter(expenditure => expenditure.category_id === parseInt(categoryId));
     };
 
-    // カテゴリー選択時のハンドラー
+    const filterExpenditureByYearMonth = (expenditureList, yearMonth) => {
+        if (!yearMonth) {
+            return expenditureList;
+        }
+        
+        const [year, month] = yearMonth.split('-');
+        
+        return expenditureList.filter(expenditure => {
+            if (!expenditure.calendar_date) return false;
+            
+            const expenditureDate = new Date(expenditure.calendar_date);
+            const expenditureYear = expenditureDate.getFullYear();
+            const expenditureMonth = expenditureDate.getMonth() + 1;
+            
+            return expenditureYear === parseInt(year) && expenditureMonth === parseInt(month);
+        });
+    };
+
     const handleCategoryChange = (event) => {
         const categoryId = event.target.value;
         setSelectedCategoryId(categoryId);
     };
 
-    // フィルタリング適用のuseEffect
+    const clearYearMonthFilter = () => {
+        setSelectedYearMonth('');
+    };
+
     useEffect(() => {
-        const filtered = filterExpenditureByCategory(expenditureInfoList, selectedCategoryId);
+        let filtered = expenditureInfoList;
+        
+        filtered = filterExpenditureByCategory(filtered, selectedCategoryId);
+        
+        filtered = filterExpenditureByYearMonth(filtered, selectedYearMonth);
+        
         setFilteredExpenditureList(filtered);
-    }, [expenditureInfoList, selectedCategoryId]);
+    }, [expenditureInfoList, selectedCategoryId, selectedYearMonth]);
 
     const [expenditureId, setExpenditureId] = useState(0);
     const [expenditureName, setExpenditureName] = useState("");
@@ -278,14 +303,74 @@ export default function Expense() {
                                             ))}
                                         </select>
                                     </div>
+                                    
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-gray-500" />
+                                        <label className="text-sm font-medium text-gray-700">
+                                            年月絞り込み:
+                                        </label>
+                                        <DatePicker
+                                            selected={selectedYearMonth ? new Date(selectedYearMonth + '-01') : null}
+                                            onChange={(date) => {
+                                                if (date) {
+                                                    const year = date.getFullYear();
+                                                    const month = date.getMonth() + 1;
+                                                    setSelectedYearMonth(`${year}-${month}`);
+                                                } else {
+                                                    setSelectedYearMonth('');
+                                                }
+                                            }}
+                                            dateFormat="yyyy年MM月"
+                                            showMonthYearPicker
+                                            locale={ja}
+                                            placeholderText="年月を選択"
+                                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 min-w-[120px]"
+                                            isClearable
+                                        />
+                                    </div>
                                 </div>
 
-                                <FilterStatus 
-                                    selectedCategoryId={selectedCategoryId}
-                                    incomeCategoryInfoList={expenditureCategoryInfoList}
-                                    filteredIncomeList={filteredExpenditureList}
-                                    onClearFilter={() => setSelectedCategoryId('')}
-                                />
+                                <div className="mb-4">
+                                    {(selectedCategoryId || selectedYearMonth) && (
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-sm text-blue-800">
+                                                    <span className="font-medium">絞り込み条件: </span>
+                                                    {selectedCategoryId && (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 mr-2">
+                                                            カテゴリー: {expenditureCategoryInfoList.find(cat => cat.id === parseInt(selectedCategoryId))?.name}
+                                                            <button
+                                                                onClick={() => setSelectedCategoryId('')}
+                                                                className="ml-1 text-blue-600 hover:text-blue-800"
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </span>
+                                                    )}
+                                                    {selectedYearMonth && (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 mr-2">
+                                                            年月: {(() => {
+                                                                const [year, month] = selectedYearMonth.split('-');
+                                                                return `${year}年${month}月`;
+                                                            })()}
+                                                            <button
+                                                                onClick={clearYearMonthFilter}
+                                                                className="ml-1 text-blue-600 hover:text-blue-800"
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-blue-600 font-medium">
+                                                    {filteredExpenditureList.length}件表示
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+
 
                                 {isLoading ? (
                                     <div className="flex justify-center items-center py-12">
@@ -395,8 +480,8 @@ export default function Expense() {
                                                 <tr>
                                                     <td colSpan={5} className="px-6 py-12 text-center">
                                                         <div className="text-sm font-medium text-gray-900">
-                                                            {selectedCategoryId ? 
-                                                                "選択されたカテゴリーにデータがありません。" :
+                                                            {(selectedCategoryId || selectedYearMonth) ? 
+                                                                "絞り込み条件に該当するデータがありません。" :
                                                                 "データがありません。上の「支出追加」ボタンから支出を登録してください。"
                                                             }
                                                         </div>
