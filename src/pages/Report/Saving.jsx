@@ -28,7 +28,7 @@ export default function Saving() {
     const [dateList, setDateList] = useState(initialDateList);
     const [isLoading, setIsLoading] = useState(true);
 
-    const INITIAL_SAVINGS = 500000;
+    const INITIAL_SAVINGS = 0;
 
     const THIS_MONTH_PERIOD = "1";
     const THREE_MONTHS_PERIOD = "2";
@@ -201,7 +201,7 @@ export default function Saving() {
         
         if (showPrediction && futureDateList.length > 0) {
             futureDateList.forEach((date) => {
-                let totalPredictionIncome = 5000000; // 収入はダミー（給与300000 + 副業50000）
+                let totalPredictionIncome = 0;
                 let totalPredictionExpenditure = 0;
 
                 Object.values(predictionData.expenseDataList).forEach((dateToAmountList) => {
