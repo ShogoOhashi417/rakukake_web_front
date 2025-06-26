@@ -7,14 +7,14 @@ interface ReportParams {
 
 export const reportService = {
   getSavingReport: async (params: ReportParams) => {
-    const response = await apiClient.get('/api/v1/report/saving', {
+    const response = await apiClient.get('/api/v1/reports/saving', {
       params
     });
     return response.data;
   },
 
   getExpenseReport: async (params: ReportParams) => {
-    const response = await apiClient.get('/api/v1/report/expense', {
+    const response = await apiClient.get('/api/v1/reports/expense', {
       params
     });
     return response.data;
