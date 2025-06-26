@@ -346,6 +346,12 @@ export default function AuthenticatedLayout({ header, children }) {
                   CSV一括登録
                 </NavLink>
               </div>
+
+              <div className="hidden space-x-8 sm:ml-10 sm:flex items-center">
+                <NavLink to="/receipt-upload" active={isActive("/receipt-upload")}>
+                  レシート登録
+                </NavLink>
+              </div>
             </div>
 
             <div className="hidden sm:flex sm:items-center sm:ml-6">
@@ -432,6 +438,9 @@ export default function AuthenticatedLayout({ header, children }) {
             </ResponsiveNavLink>
             <ResponsiveNavLink to="/bulk-operations" active={isActive("/bulk-operations")}>
               CSV一括登録
+            </ResponsiveNavLink>
+            <ResponsiveNavLink to="/receipt-upload" active={isActive("/receipt-upload")}>
+              レシート登録
             </ResponsiveNavLink>
           </div>
 
