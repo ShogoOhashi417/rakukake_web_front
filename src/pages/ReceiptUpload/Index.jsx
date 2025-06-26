@@ -12,6 +12,87 @@ export default function ReceiptUpload() {
   const [uploadResult, setUploadResult] = useState('');
   const [errors, setErrors] = useState({});
 
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    
+    if (!file) {
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors({ file: 'JPEG、JPG、PNGファイルのみアップロード可能です' });
+      return;
+    }
+
+    setSelectedFile(file);
+    setErrors({});
+
+    const previewData = {
+      file,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2)
+    };
+    
+    setPreview(previewData);
+  };
+
+  const removeFile = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview.url);
+    }
+    
+    setSelectedFile('');
+    setPreview('');
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setErrors({ file: 'アップロードするファイルを選択してください' });
+      return;
+    }
+
+    setUploading(true);
+    setUploadResult('');
+    setErrors({});
+
+    try {
+      const data = await imageUploadService.uploadImage(selectedFile);
+      setUploadResult({
+        file: selectedFile.name,
+        status: 'success',
+        message: 'アップロード成功',
+        data: data
+      });
+      
+      if (preview) {
+        URL.revokeObjectURL(preview.url);
+      }
+      setSelectedFile('');
+      setPreview('');
+      
+    } catch (error) {
+      setUploadResult({
+        file: selectedFile.name,
+        status: 'error',
+        message: error.response?.data?.message || 'アップロードに失敗しました'
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearAll = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview.url);
+    }
+    setSelectedFile('');
+    setPreview('');
+    setUploadResult('');
+    setErrors({});
+  };
+
   return (
     <AuthenticatedLayout
       header={
