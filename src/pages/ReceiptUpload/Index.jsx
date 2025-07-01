@@ -97,30 +97,36 @@ export default function ReceiptUpload() {
     setPreview('');
   };
 
-  const generateDummyData = () => {
-    return [
-      {
+  const processExtractedData = (responseData) => {
+    if (!responseData || !responseData.data) {
+      return [{
         id: null,
-        name: 'コーヒー',
-        amount: 450,
-        category_id: 1,
+        name: '不明な商品',
+        amount: 0,
+        category_id: expenditureCategoryInfoList[0]?.id || 1,
         date: new Date().toISOString().split('T')[0]
-      },
-      {
+      }];
+    }
+
+    const extractedData = responseData.data;
+
+    if (extractedData.items && extractedData.items.length > 0) {
+      return extractedData.items.map(item => ({
         id: null,
-        name: 'サンドイッチ',
-        amount: 680,
-        category_id: 1,
-        date: new Date().toISOString().split('T')[0]
-      },
-      {
-        id: null,
-        name: 'ペットボトル茶',
-        amount: 150,
-        category_id: 1,
-        date: new Date().toISOString().split('T')[0]
-      }
-    ];
+        name: item.name || '不明な商品',
+        amount: item.total_price || item.price || 0,
+        category_id: expenditureCategoryInfoList[0]?.id || 1,
+        date: extractedData.date || new Date().toISOString().split('T')[0]
+      }));
+    }
+
+    return [{
+      id: null,
+      name: extractedData.store_name || '不明な商品',
+      amount: extractedData.total_amount || 0,
+      category_id: expenditureCategoryInfoList[0]?.id || 1,
+      date: extractedData.date || new Date().toISOString().split('T')[0]
+    }];
   };
 
   const getExpenditureCategory = async () => {
@@ -150,16 +156,18 @@ export default function ReceiptUpload() {
     setErrors({});
 
     try {
-      const dummyData = generateDummyData();
-      setReceiptDataList(dummyData);
-      
       await getExpenditureCategory();
+      
+      const uploadResponse = await imageUploadService.uploadImage(selectedFile);
+      
+      const processedData = processExtractedData(uploadResponse);
+      setReceiptDataList(processedData);
       
       setUploadResult({
         file: selectedFile.name,
         status: 'success',
         message: 'アップロード成功',
-        data: dummyData
+        data: processedData
       });
       
       setIsModalOpen(true);
@@ -171,6 +179,7 @@ export default function ReceiptUpload() {
       setPreview('');
       
     } catch (error) {
+      console.error('アップロードエラー:', error);
       setUploadResult({
         file: selectedFile.name,
         status: 'error',
