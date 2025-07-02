@@ -5,6 +5,7 @@ import SecondaryButton from '../../components/SecondaryButton';
 import InputError from '../../components/InputError';
 import DataConfirmModal from '../../components/DataConfirmModal';
 import imageUploadService from '../../api/services/imageUploadService';
+import { expenditureService } from "../../api/services/expenditureService";
 import { categoryService } from '../../api/services/categoryService';
 
 export default function ReceiptUpload() {
@@ -103,7 +104,7 @@ export default function ReceiptUpload() {
         id: null,
         name: '不明な商品',
         amount: 0,
-        category_id: expenditureCategoryInfoList[0]?.id || 1,
+        category_id: expenditureCategoryInfoList[0]?.id || 0,
         date: new Date().toISOString().split('T')[0]
       }];
     }
@@ -115,7 +116,7 @@ export default function ReceiptUpload() {
         id: null,
         name: item.name || '不明な商品',
         amount: item.total_price || item.price || 0,
-        category_id: expenditureCategoryInfoList[0]?.id || 1,
+        category_id: expenditureCategoryInfoList[0]?.id || 0,
         date: extractedData.date || new Date().toISOString().split('T')[0]
       }));
     }
@@ -124,7 +125,7 @@ export default function ReceiptUpload() {
       id: null,
       name: extractedData.store_name || '不明な商品',
       amount: extractedData.total_amount || 0,
-      category_id: expenditureCategoryInfoList[0]?.id || 1,
+      category_id: expenditureCategoryInfoList[0]?.id || 0,
       date: extractedData.date || new Date().toISOString().split('T')[0]
     }];
   };
@@ -215,8 +216,24 @@ export default function ReceiptUpload() {
   };
 
   const handleSave = () => {
-    console.log('保存データ:', receiptDataList);
-    setIsModalOpen(false);
+    const formData = new FormData();
+
+    receiptDataList.forEach((item, index) => {
+            if (item.id) {
+                formData.append(`items[${index}][id]`, item.id.toString());
+            } else {
+                formData.append(`items[${index}][id]`, '');
+            }
+            formData.append(`items[${index}][name]`, item.name);
+            formData.append(`items[${index}][category_id]`, item.category_id.toString());
+            formData.append(`items[${index}][amount]`, item.amount.toString());
+            formData.append(`items[${index}][calendar_date]`, item.date);
+      });
+
+        expenditureService.bulkCreateExpenditure(formData)
+            .then(() => {
+                setIsModalOpen(false);
+            });
   };
 
   return (
