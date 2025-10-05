@@ -91,7 +91,7 @@ export const expenditureService = {
   },
 
   bulkCreateExpenditure: async (formData: FormData) => {
-    const response = await apiClient.post('/api/v1/expenditures/bulk-create', formData, {
+    const response = await apiClient.post('/api/v1/expenses/bulk-create', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
