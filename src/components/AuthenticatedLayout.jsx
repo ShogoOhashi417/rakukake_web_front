@@ -210,7 +210,7 @@ export default function AuthenticatedLayout({ header, children }) {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="shrink-0 flex items-center">
-                <Link to="/">
+                <Link to="/report/savings">
                   <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
                 </Link>
               </div>
