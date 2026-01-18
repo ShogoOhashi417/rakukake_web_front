@@ -15,6 +15,7 @@ import Report from './pages/Report/Saving';
 import ReportExpense from './pages/Report/Expense';
 import BulkOperation from './pages/BulkOperation/ExpenseBulkOperation';
 import ReceiptUpload from './pages/ReceiptUpload/Index';
+import Bank from './pages/Bank/Index';
 import Edit from './pages/Profile/Edit';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import apiClient from './api/client';
@@ -155,6 +156,12 @@ function App() {
         <Route path="/receipt-upload" element={
           <ProtectedRoute>
             <ReceiptUpload />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/banks" element={
+          <ProtectedRoute>
+            <Bank />
           </ProtectedRoute>
         } />
         
